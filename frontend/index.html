@@ -1,0 +1,512 @@
+<html>
+<head>
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+<body>
+        <div id="modalAlert" class="modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+                <div class="row mb-5 mt-5" id="wanrings">
+            <div class="col-12 cards">
+            </div>
+                
+            </div>
+
+
+
+            <div class="row" id="new-wallet-form">
+                <div class="col-12">
+                    <hr>
+                    <h4>New wallet</h4>
+                        <form>
+                            <div class="col-6">
+                                <div class="form-group">
+                                <label for="newWalletName">New wallet name</label>
+                                <input type="text" class="form-control" id="newWalletName" placeholder="Wallet #1">
+                            </div>
+                            <div class="form-group">
+                                <label for="mnemonicInput">Mnemonic</label>
+                                <textarea class="form-control" id="mnemonicInput" rows="3"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="passwordInput">Password</label>
+                                <input type="password" class="form-control" id="passwordInput" placeholder="Key password">
+                            </div>
+                            <div class="form-group">
+                                    <label for="passwordInput">Confirm Password</label>
+                                    <input type="password" class="form-control" id="password2Input" placeholder="Confirm password">
+                                </div>
+                            </div>
+                        <div class="col-6">
+                                <button type="submit" class="btn btn-primary" id="buttonGenerateMnemonic">Generate</button>
+                                <button type="submit" class="btn btn-primary" id="buttonAddWallet">Submit</button>
+                        </div>                
+                    </form>
+                </div>
+            </div>
+        
+        <div class="row">
+            <div class="col-12 d-none" id="select-wallet-form">
+                <hr>
+                <h4>Wallets</h4>
+                <div class="col-12">
+                    <form>
+                        <div class="form-row">
+                            <div class="form-group col-4">
+                                <label for="currentWalletName">Wallet name</label>
+                                <select id="currentWalletName" class="form-control wallet-selection">
+                                </select>   
+                            </div>                             
+                            <div class="form-group col-1">
+                                <label for="currentWalletCurrency">Currency</label>
+                                <select id="currentWalletCurrency" class="form-control wallet-selection">
+                                    <option>BTC</option>
+                                    <option>ETH</option>
+                                </select>   
+                            </div>
+                             
+                            <div class="form-group col-1">
+                                <label for="currentWalletFrom">Start</label>
+                                <input type="text" class="form-control" id="currentWalletFrom"  placeholder="0" value="0">
+                            </div>
+                            <div class="form-group col-1">
+                                    <label for="currentWalletTo">End</label>
+                                    <input type="text" class="form-control" id="currentWalletTo" placeholder="10" value="10">
+                            </div>
+                            <div class="form-group col-4 mt-auto">
+                                    <button type="submit" class="btn btn-primary" id="buttonWalletScan">Scan</button>
+                                    <button type="submit" class="btn btn-primary" id="buttonShowOuts">Show outputs</button>
+                            </div>
+                        </div>                  
+                    </form>
+                </div>
+                <div class="col-12">
+                    <form class="form">
+                        <div class="form-row">
+                                <div class="form-group col-12 mt-auto">
+                                    <input type="text" class="wallet-public-key form-control form-control-sm full-width" id="wallet-public" placeholder="10" value="" disabled>
+                                    <button type="submit" class="btn btn-primary btn-sm" onclick="javascript:copyToClipboard('#wallet-public')">Copy</button>
+                                </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12" id="outs-form-div">
+                    <hr>
+                    <h4>Output addresses</h4>
+                    <div class="col-12">
+                        <form id="outs-form">
+                            <div id="outs-entries">
+                            </div>
+
+
+                            <div class="form-row">
+                                <div class="form-group col-4 mt-auto">
+                                        <button type="submit" class="btn btn-primary" id="buttonAddOut">Add address</button>
+                                </div>
+                                <div class="form-group col-3">
+                                        <label for="passwordInput">Password</label>
+                                        <input type="password" class="form-control" id="masterPasswordInput" placeholder="Master Key password">
+                                </div>
+        
+                                <div class="form-group col-2 mt-auto">
+                                        <button type="submit" class="btn btn-primary" id="buttonSubmitOuts">Submit</button>
+                                </div>  
+                            </div>
+                            
+                        </form>
+                    </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12" id="wallets-balances-div">
+                <hr>
+                <h4>Available balances</h4>
+
+                    <div class="col-12 mt-2">
+                            <div class="row">
+                                    <div class="col-6"><strong>Total</strong></div>
+                                    <div class="col-3"><strong class="total-balance">0</strong></div>
+                                    <div class="col-3"><strong class="total-currency"></strong></div>
+                            </div>
+                    </div>
+                    <hr>
+                    <div class="col-12 mt-2 mb-3">
+                            <div class="row">
+                                    <div class="col-6">Address</div>
+                                    <div class="col-3">Balance</div>
+                                    <div class="col-3">Actions</div>
+                            </div>
+                    </div>
+                    <hr>
+                    <div class="col-12 wallets-list">
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+
+        <script src="js/jquery.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+        <script src="js/api.js"></script>
+        <script>
+                function showAlert(title, text){
+                    $('.modal-title').html(title);
+                    $('.modal-body').html(`<p>${text}</p>`);
+                    $('#modalAlert').modal();
+                }
+        </script>
+
+        <script>
+                function renderWallet(id, address){
+                    return(`
+                    <div class="row">
+                        <div class="col-6" id="address_${id}">${address}</div>
+                        <div class="col-3"><span class="d-none" id="balance_loading_${id}">Loading</span><span id="balance_${id}"></span></div>
+                        <div class="col-3" id="actions_${id}"><a href="#" class="btn btn-large scan-wallet-button" data="${id}">Scan</a></div>
+                    </div>`);
+                }
+                function copyToClipboard(element) {
+                    console.log("Copy", element );
+                    var $temp = $("<input>");
+                    $("body").append($temp);
+                    $temp.val($(element).val()).select();
+                    document.execCommand("copy");
+                    $temp.remove();
+                }
+
+
+                function renderOutFormRow(address=null, percent=100){
+                    if(!address){
+                        address = "";
+                    }
+                    return(`
+                            <div class="form-row out-row" id="out_${address}">
+                                <div class="form-group col-4">
+                                    <input type="text" class="form-control outAddress" placeholder="Your cold storage address" value="${address}">
+                                </div>
+                                <div class="form-group col-4">
+                                    <input type="text" class="form-control outPercent" placeholder="10" value="${percent}">
+                                </div>  
+                                <div class="form-group col-4">
+                                        <button type="submit" data="${address}" class="btn btn-primary buttonDeleteOut">Delete</button>
+                                </div>  
+                            </div>                  
+                    `);
+
+                }
+                function renderCard(name, title, content){
+                    return(`
+                        <div class="row" id="${name}">
+                                <div class="col-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                                <h5 class="card-title to-do-title text-danger">${title}</h5>
+                                                <p class="card-text to-do-text" >${content}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                        </div>
+                        `)
+                    }
+
+        </script>
+
+
+        <script>
+             var balancedIds = [];
+             var totalBalance=0;
+
+
+            function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            async function wait() {
+                console.log('Taking a break...');
+                await sleep(1000);
+                console.log('Two seconds later');
+            }
+
+            function getBalance(wallet, currency, bip32_i, callback){
+                APIGetBalance(wallet, currency, bip32_i, function(response){
+                    if(response.error)
+                    {
+                            $("#balance_loading_"+bip32_i).addClass("d-none");
+                            $("#balance_"+bip32_i).html("error");
+                            if(callback) callback();
+                            return;
+                            
+                    }
+
+                    console.log(response);
+                    if( !response.error ){
+                            let wallet_balance = response.result;
+                            $("#balance_loading_"+bip32_i).addClass("d-none");
+                            $("#balance_"+bip32_i).html(wallet_balance);
+                            totalBalance+=wallet_balance;
+                            if(wallet_balance>0){
+                                balancedIds.push(bip32_i);
+                            }
+                            $(".total-balance").html(totalBalance);
+                    }
+                    if(callback) callback();
+                })
+            }
+
+
+            function selectWallet(wallet, currency, start_number=0, end_number=10 ){
+                balancedIds=[];
+                let requests=0;
+                $(".wallets-list").empty();
+
+                APIGetWallet(wallet, (response)=>{
+                    if(response.error)
+                    {
+                        consoloe.log("APIGetWallet", response);
+                    }
+                    $("#outs-entries").empty();
+                    let wallet_object = response.result;
+                    $("#wallet-public").val(wallet_object[currency].pub);
+                    if( wallet_object[currency] && wallet_object[currency].outs && Object.keys(wallet_object[currency].outs).length>0){
+                        $("#wallet-output-card").remove();
+                        $("#outs-form-div").addClass("d-none");
+                        for(let x of Object.keys(wallet_object[currency].outs)){
+                            $("#outs-entries").append(renderOutFormRow(x, wallet_object[currency].outs[x]));
+                        }
+                        $("#outs-entries").append(renderOutFormRow(null, 0));
+                    }else{
+                        $("#outs-form-div").removeClass("d-none");
+                        $("#wallet-output-card").remove();
+                        $(".cards").append( renderCard("wallet-output-card", "Please set outputs", "Please set output addresses and percentage of outgoing payments and input your master password. The sum of outgoing percents must be 100") );
+                        $("#outs-entries").append(renderOutFormRow(null, 0));
+                        
+                    }
+
+
+                    [...Array(end_number - start_number).keys()].forEach( (a)=>{
+                        let bip32_i = a + start_number
+                        console.log(a, bip32_i, start_number, end_number);
+                        APIGetAddress(wallet, currency, bip32_i, function(response){
+
+                            console.log(response);
+                            if( !response.error && response.result){
+                                let wallet_address = response.result;
+                                $(".wallets-list").append(renderWallet(bip32_i, wallet_address));
+                                $("#balance_loading_"+a).removeClass("d-none");
+                                getBalance(wallet, currency, bip32_i, function(){
+                                    console.log("Finished", bip32_i );
+                                })
+
+                            }
+
+                        });
+                    })
+
+                    console.log(response);
+                });
+            }
+
+
+            function fetchWallets(){
+                APIGetWallets( function(response){
+                console.log("APIGetWallets", response)
+                if( !response.error && response.result){
+                    let wallets = response.result;
+
+
+                    if(wallets.length > 0){
+                        if( wallets.indexOf("Master") == -1){
+                            $("#newWalletName").val("Master");
+                            $("#newWalletName").attr("disabled", 1);
+                          }else{
+                            
+                            let isWalletSelected=false;
+                            for(let i in wallets){
+                                if(wallets[i] != "Master")
+                                {
+                                    $("#currentWalletName").append(`<option>${wallets[i]}</option>`);
+                                    if(!isWalletSelected){
+                                        selectWallet(wallets[i], "BTC");
+                                        isWalletSelected = true;
+                                    }
+                                }else{
+                                    $("#master-wallet-card").remove();
+                                }
+                            }
+                            if(isWalletSelected){
+                                $("#outs-form").removeClass("d-none");
+                                $("#wallets-balances-div").removeClass("d-none");
+                                $("#new-wallet-form").addClass("d-none");
+                                $("#select-wallet-form").removeClass("d-none");
+                                $("#add-operational-wallet-card").remove();
+                            }else{
+                                $("#outs-form").addClass("d-none");
+                                $("#wallets-balances-div").addClass("d-none");
+                                $(".cards").append( renderCard("add-operational-wallet-card", "Please create operational wallet", "Operational wallet creates HD tree of addresses. Please make sure you provide your clients with addresses derived from original seed phrase. ") )
+                            }
+                        }
+                    }else{
+                        $("#newWalletName").val("Master");
+                        $("#newWalletName").attr("disabled", 1);
+                        $(".cards").append( renderCard("master-wallet-card", "Please create master wallet", "Master wallet is required for signing outputs. Please do not forget to write down recovery phrase and do not forget the password for thsi wallet. ") )
+                    }
+                }
+                });
+            }
+
+            function fetchMnemonics(){
+                APIGetMnemonic( function(response){
+                console.log("APIGetMnemonics", response)
+                $("#mnemonicInput").text(response.result);
+                });
+            }
+
+
+            //APILogin("admin", "cryptoAdmin", console.log);
+            
+            fetchMnemonics();
+            fetchWallets();
+
+            $(document).on("change", ".wallet-selection", (event)=>{
+                let walletId = $("#currentWalletName").val();
+                let walletCurrency = $("#currentWalletCurrency").val();
+                $(".total-currency").val(walletCurrency);
+                selectWallet(walletId, walletCurrency)
+            });
+
+            $(document).on("click", "#buttonSubmitOuts", (event) =>{
+                let walletId = $("#currentWalletName").val();
+                let walletCurrency = $("#currentWalletCurrency").val();
+                let masterPassword = $("#masterPasswordInput").val();
+                event.preventDefault();
+                let outs={}
+                let totalpct=0;
+                $('.out-row').each((index,element)=>{
+                    let ca = $(element).find(".outAddress").val();
+                    let cp = parseInt( $(element).find(".outPercent").val() );
+                    if(cp>0)
+                    {
+                        outs[ca]=cp;
+                        totalpct += cp;
+                    }
+                }); 
+                console.log(totalpct); 
+                if( totalpct != 100){
+                    showAlert("Error", "Sum of output percents must be 100");
+                    return;
+                }
+                console.log(outs);
+                APISetOuts(walletId, walletCurrency, masterPassword, outs, function(response){
+                    console.log(response);
+                    fetchWallets();
+                });
+
+            });
+
+            $(document).on("click", "#buttonGenerateMnemonic", (event)=>{
+                event.preventDefault();
+                fetchMnemonics();
+            });
+
+            $(document).on("click",".buttonDeleteOut",  (event)=>{
+                event.preventDefault();
+                $(event.target).parent().parent().empty();
+            });
+
+            $(document).on("click","#buttonAddOut",  (event)=>{
+                event.preventDefault();
+                $("#outs-entries").append(renderOutFormRow(null, 100));
+            })
+
+
+            $(document).on("click", "#buttonShowOuts", (event)=>{
+                event.preventDefault();
+                if( $("#buttonShowOuts").html() == "Hide outputs" )
+                {
+                    $("#outs-form-div").addClass("d-none");
+                    $("#buttonShowOuts").html("Show outputs");
+
+                }else{
+                    $("#outs-form-div").removeClass("d-none");
+                    $("#buttonShowOuts").html("Hide outputs");
+                }
+            });
+
+
+            $(document).on("click", "#buttonWalletScan", (event)=>{
+                event.preventDefault();
+                let walletId = $("#currentWalletName").val();
+                let walletCurrency = $("#currentWalletCurrency").val();
+                let walletAddressFrom = parseInt($("#currentWalletFrom").val());
+                let walletAddressTo = parseInt($("#currentWalletTo").val());
+                selectWallet(walletId, walletCurrency, walletAddressFrom, walletAddressTo);
+            });
+
+
+            $(document).on("click", "#buttonAddWallet", (event) => {
+                event.preventDefault();
+                let walletName = $("#newWalletName").val();
+                let mnemonicValue = $("#mnemonicInput").text();
+                let passwordValue = $("#passwordInput").val();
+                let password2Value = $("#password2Input").val();
+
+                if( walletName.length == 0 ){
+                    showAlert("Error", "Wallet name shouldn't be empty");
+                    $("#newWalletName").addClass("is-invalid");
+                    return;
+                }
+                if( mnemonicValue.length == 0 ){
+                    showAlert("Error", "Mnemonic is empty");
+                    return;
+                }
+                if( passwordValue.length == 0 ){
+                    showAlert("Error", "Password is empty");
+                    return;
+                }
+                if( password2Value.length == 0 ){
+                    showAlert("Error", "Please confirm password");
+                    return;
+                }
+                if( passwordValue != password2Value ){
+                    showAlert("Error", "Please confirm password");
+                    return;
+                }
+
+                APIAddWallet( walletName, mnemonicValue, passwordValue, (response) =>{
+                    if( response.error ){
+                        showAlert("Error", response.error);
+                        return;
+                    }
+                    fetchWallets();
+                });
+            });
+
+        </script>
+        
+
+</body>
+</html>

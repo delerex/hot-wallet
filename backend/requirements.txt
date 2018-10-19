@@ -1,0 +1,9 @@
+pycrypto==2.6.1
+ethereum==2.3.2
+bitcoin==1.1.42
+mnemonic==0.18
+aiohttp==2.3.6
+asyncio==3.4.3
+yarl==0.18.0
+requests==2.19.1
+base58==1.0.0
