@@ -1,4 +1,4 @@
-const baseUrl = "http://127.0.0.1:3200/";
+const baseUrl = "/";
 
 const API = {
     login:  "login/",
@@ -71,8 +71,8 @@ function APIGetMnemonic(callback=null){
     });
 }
 
-function APIAddWallet(wallet, mnemonic, password, callback=null){
-    PostAPI(API.wallets+wallet+"/", {mnemonic : mnemonic, keypassword : password }, function (response) {
+function APIAddWallet(wallet, mnemonic, password, wallettype, callback=null){
+    PostAPI(API.wallets+wallet+"/", {mnemonic : mnemonic, keypassword : password, wallettype : wallettype }, function (response) {
         if(callback){callback(response);}
     });
 }

@@ -42,6 +42,13 @@
                                 <input type="text" class="form-control" id="newWalletName" placeholder="Wallet #1">
                             </div>
                             <div class="form-group">
+                                <label for="newWalletType">Wallet type</label>
+                                <select id="newWalletType" class="form-control wallet-type-selection">
+                                    <option value="cashier">Cashier</option>
+                                    <option value="tokenowner">Token Owner</option>
+                                </select>   
+                            </div>
+                            <div class="form-group">
                                 <label for="mnemonicInput">Mnemonic</label>
                                 <textarea class="form-control" id="mnemonicInput" rows="3"></textarea>
                             </div>
@@ -364,15 +371,25 @@
                                 $("#select-wallet-form").removeClass("d-none");
                                 $("#add-operational-wallet-card").remove();
                             }else{
-                                $("#outs-form").addClass("d-none");
+                                $("#outs-form-div").addClass("d-none");
                                 $("#wallets-balances-div").addClass("d-none");
                                 $(".cards").append( renderCard("add-operational-wallet-card", "Please create operational wallet", "Operational wallet creates HD tree of addresses. Please make sure you provide your clients with addresses derived from original seed phrase. ") )
                             }
                         }
                     }else{
                         $("#newWalletName").val("Master");
+                        
+                        $("#newWalletType").prepend('<option value="master">Master</option>');
+                        $("#newWalletType").val('master');
+                        $("#newWalletType").attr("disabled", 1);
                         $("#newWalletName").attr("disabled", 1);
+                        
                         $(".cards").append( renderCard("master-wallet-card", "Please create master wallet", "Master wallet is required for signing outputs. Please do not forget to write down recovery phrase and do not forget the password for thsi wallet. ") )
+                        $("#wallets-balances-div").addClass("d-none");
+                        $("#select-wallet-form").addClass("d-none");
+                        $("#outs-form-div").addClass("d-none");
+
+
                     }
                 }
                 });
@@ -385,8 +402,6 @@
                 });
             }
 
-
-            //APILogin("admin", "cryptoAdmin", console.log);
             
             fetchMnemonics();
             fetchWallets();
@@ -473,6 +488,7 @@
                 let mnemonicValue = $("#mnemonicInput").text();
                 let passwordValue = $("#passwordInput").val();
                 let password2Value = $("#password2Input").val();
+                let walletType = $("#newWalletType").val();
 
                 if( walletName.length == 0 ){
                     showAlert("Error", "Wallet name shouldn't be empty");
@@ -496,11 +512,12 @@
                     return;
                 }
 
-                APIAddWallet( walletName, mnemonicValue, passwordValue, (response) =>{
+                APIAddWallet( walletName, mnemonicValue, passwordValue, walletType, (response) =>{
                     if( response.error ){
                         showAlert("Error", response.error);
                         return;
                     }
+                    window.location="index.html"
                     fetchWallets();
                 });
             });

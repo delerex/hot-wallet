@@ -39,7 +39,7 @@ async def add_wallet(request : BaseRequest):
     if wallet_id in config and "encrypted_seed" in config["wallet_id"]:
         return {"error" : "Seed phrase is already set"}
     encrypted_seed, btc_pub, eth_pub = generate_encrypted_seed(request.all_data["mnemonic"], request.all_data["keypassword"])
-    cfg = {wallet_id : {"type": "wallet", "encrypted_seed" : str(encrypted_seed), "BTC" : btc_pub, "ETH" : eth_pub }}
+    cfg = {wallet_id : {"type": "wallet", "wallettype": request.all_data["wallettype"], "encrypted_seed" : str(encrypted_seed), "BTC" : btc_pub, "ETH" : eth_pub }}
     save_config(cfg)
     return {"error" : None, "result" : True}
 
