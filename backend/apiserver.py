@@ -124,17 +124,17 @@ async def set_outs(request : BaseRequest):
     return {"error" : None,  "result" : verify_result}
 
 routes = [
-    ("*",       r"/check/", check),
+    ("*",       r"/api/check/", check),
     ("*",       r"/api/", check),
-    ("GET",  r"/mnemonic/", get_mnemonic),
-    ("POST", r"/wallets/{wallet}/", add_wallet),
-    ("GET",  r"/wallets/", get_wallets),
-    ("GET",  r"/wallets/{wallet}/", get_wallet),
-    ("GET",  r"/wallets/{wallet}/{currency}/{number}/address/", get_address),
-    ("GET" , r"/wallets/{wallet}/{currency}/{number}/balance/", get_balance),
-    ("POST" , r"/wallets/{wallet}/{currency}/outs/", set_outs),
-    ("POST", r"/login/", login),
-    ("GET",  r"/tokens/requests", withdrawal_requests),
+    ("GET",  r"/api/mnemonic/", get_mnemonic),
+    ("POST", r"/api/wallets/{wallet}/", add_wallet),
+    ("GET",  r"/api/wallets/", get_wallets),
+    ("GET",  r"/api/wallets/{wallet}/", get_wallet),
+    ("GET",  r"/api/wallets/{wallet}/{currency}/{number}/address/", get_address),
+    ("GET" , r"/api/wallets/{wallet}/{currency}/{number}/balance/", get_balance),
+    ("POST" , r"/api/wallets/{wallet}/{currency}/outs/", set_outs),
+    ("POST", r"/api/login/", login),
+    ("GET",  r"/api/tokens/requests", withdrawal_requests),
 ]
 
 
