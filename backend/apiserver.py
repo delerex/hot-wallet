@@ -77,7 +77,7 @@ async def get_balance(request : BaseRequest):
         balance = bitcoin.get_balance(addr)
     if currency == "ETH":
         ethereum = EthereumClass()
-        pubkey = config.get(wallet_id, {}).get("BTC", None)
+        pubkey = config.get(wallet_id, {}).get("ETH", None)
         if pubkey is None:
             return {"error": "Cannot get address"}
         addr = ethereum.get_addr_from_pub(pubkey, number)

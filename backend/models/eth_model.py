@@ -23,11 +23,14 @@ class EthereumClass(CurrencyModel):
         self.decimals = 18
         self.etherscan = EtherScan()
 
+    def eth_pubtoaddr(self, x, y):
+        return u.checksum_encode(
+            u.sha3(u.encode_int32(x) + u.encode_int32(y))[12:]).lower()
+
     def get_addr_from_pub(self, pubkey, address_number):
-        pk_addrs = bip32_ckd(bip32_ckd(pubkey, 0), address_number)
-        addr = bip32_extract_key(pk_addrs)
-        addr = SHA3_256.new().update(addr.encode("ascii")).hexdigest()
-        addr = u.normalize_address( addr[64-40:] )
+        pk_addrs = bip32_ckd(bip32_ckd(pubkey, 0), int(address_number))
+        keyf = decode_pubkey( bip32_extract_key(pk_addrs))
+        addr = self.eth_pubtoaddr(keyf[0], keyf[1])
         return u.checksum_encode(u.decode_addr(addr))
 
 
