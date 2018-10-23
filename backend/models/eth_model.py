@@ -31,11 +31,11 @@ class EthereumClass(CurrencyModel):
         pk_addrs = bip32_ckd(bip32_ckd(pubkey, 0), int(address_number))
         keyf = decode_pubkey( bip32_extract_key(pk_addrs))
         addr = self.eth_pubtoaddr(keyf[0], keyf[1])
-        return u.checksum_encode(u.decode_addr(addr))
+        return u.checksum_encode(addr)
 
 
     def get_balance(self, addr):
-        return self.etherscan.balance(addr)
+        return int(self.etherscan.balance(addr))
 
 
 
