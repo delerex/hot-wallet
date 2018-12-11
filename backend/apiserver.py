@@ -100,7 +100,7 @@ async def get_balance(request: Request):
         return {"error": "Cannot get address"}
     addr = currency_model.get_addr_from_pub(xpubkey, number)
     balance = currency_model.get_balance(addr)
-    return {"error": None, "result": balance}
+    return {"error": None, "result": currency_model.decimal_to_float(balance)}
 
 
 async def get_address(request: BaseRequest):
