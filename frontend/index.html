@@ -26,7 +26,7 @@
                 <div class="row mb-5 mt-5" id="wanrings">
             <div class="col-12 cards">
             </div>
-                
+
             </div>
 
 
@@ -46,7 +46,7 @@
                                 <select id="newWalletType" class="form-control wallet-type-selection">
                                     <option value="cashier">Cashier</option>
                                     <option value="tokenowner">Token Owner</option>
-                                </select>   
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label for="mnemonicInput">Mnemonic</label>
@@ -64,11 +64,11 @@
                         <div class="col-6">
                                 <button type="submit" class="btn btn-primary" id="buttonGenerateMnemonic">Generate</button>
                                 <button type="submit" class="btn btn-primary" id="buttonAddWallet">Submit</button>
-                        </div>                
+                        </div>
                     </form>
                 </div>
             </div>
-        
+
         <div class="row">
             <div class="col-12 d-none" id="select-wallet-form">
                 <hr>
@@ -79,16 +79,16 @@
                             <div class="form-group col-4">
                                 <label for="currentWalletName">Wallet name</label>
                                 <select id="currentWalletName" class="form-control wallet-selection">
-                                </select>   
-                            </div>                             
+                                </select>
+                            </div>
                             <div class="form-group col-1">
                                 <label for="currentWalletCurrency">Currency</label>
                                 <select id="currentWalletCurrency" class="form-control wallet-selection">
                                     <option>BTC</option>
                                     <option>ETH</option>
-                                </select>   
+                                </select>
                             </div>
-                             
+
                             <div class="form-group col-1">
                                 <label for="currentWalletFrom">Start</label>
                                 <input type="text" class="form-control" id="currentWalletFrom"  placeholder="0" value="0">
@@ -101,7 +101,7 @@
                                     <button type="submit" class="btn btn-primary" id="buttonWalletScan">Scan</button>
                                     <button type="submit" class="btn btn-primary" id="buttonShowOuts">Show outputs</button>
                             </div>
-                        </div>                  
+                        </div>
                     </form>
                 </div>
                 <div class="col-12">
@@ -135,12 +135,12 @@
                                         <label for="passwordInput">Password</label>
                                         <input type="password" class="form-control" id="masterPasswordInput" placeholder="Master Key password">
                                 </div>
-        
+
                                 <div class="form-group col-2 mt-auto">
                                         <button type="submit" class="btn btn-primary" id="buttonSubmitOuts">Submit</button>
-                                </div>  
+                                </div>
                             </div>
-                            
+
                         </form>
                     </div>
             </div>
@@ -150,7 +150,14 @@
             <div class="col-12" id="wallets-balances-div">
                 <hr>
                 <h4>Available balances</h4>
-
+                    <div class="col-12">
+                        <div class="row">
+                            <div class="col-9"></div>
+                            <div class="col-3">
+                                <button type="submit" class="btn btn-primary" id="buttonSendTransaction">Send</button>
+                            </div>
+                        </div>
+                    </div>
                     <div class="col-12 mt-2">
                             <div class="row">
                                     <div class="col-6"><strong>Total</strong></div>
@@ -266,7 +273,7 @@
                             $("#balance_"+bip32_i).html("error");
                             if(callback) callback();
                             return;
-                            
+
                     }
 
                     console.log(response);
@@ -310,7 +317,7 @@
                         $("#wallet-output-card").remove();
                         $(".cards").append( renderCard("wallet-output-card", "Please set outputs", "Please set output addresses and percentage of outgoing payments and input your master password. The sum of outgoing percents must be 100") );
                         $("#outs-entries").append(renderOutFormRow(null, 0));
-                        
+
                     }
 
 
@@ -350,7 +357,7 @@
                             $("#newWalletName").val("Master");
                             $("#newWalletName").attr("disabled", 1);
                           }else{
-                            
+
                             let isWalletSelected=false;
                             for(let i in wallets){
                                 if(wallets[i] != "Master")
@@ -378,12 +385,12 @@
                         }
                     }else{
                         $("#newWalletName").val("Master");
-                        
+
                         $("#newWalletType").prepend('<option value="master">Master</option>');
                         $("#newWalletType").val('master');
                         $("#newWalletType").attr("disabled", 1);
                         $("#newWalletName").attr("disabled", 1);
-                        
+
                         $(".cards").append( renderCard("master-wallet-card", "Please create master wallet", "Master wallet is required for signing outputs. Please do not forget to write down recovery phrase and do not forget the password for thsi wallet. ") )
                         $("#wallets-balances-div").addClass("d-none");
                         $("#select-wallet-form").addClass("d-none");
@@ -402,7 +409,7 @@
                 });
             }
 
-            
+
             fetchMnemonics();
             fetchWallets();
 
@@ -428,8 +435,8 @@
                         outs[ca]=cp;
                         totalpct += cp;
                     }
-                }); 
-                console.log(totalpct); 
+                });
+                console.log(totalpct);
                 if( totalpct != 100){
                     showAlert("Error", "Sum of output percents must be 100");
                     return;
@@ -523,7 +530,7 @@
             });
 
         </script>
-        
+
 
 </body>
 </html>
