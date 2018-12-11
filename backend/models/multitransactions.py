@@ -1,27 +1,35 @@
-class multitransactionclass:
-    def __init__(self, currency = None, reference_id = None, desc = ""):
-        self.transaction = {"ins":[], "outs":[], "exts":[], "inusers":[], "outusers":[], "inamount":0, "outamount":0, "extamount":0, "time" : 0, "desc" : "" }
-        self.transaction["currency"] = currency
-        self.transaction["reference"] = reference_id
-        self.transaction["_id"] = reference_id
-        self.transaction["description"] = desc
+class MultiTransactionClass:
+    def __init__(self, currency=None, reference_id=None, desc=""):
+        self.transaction = {"ins": [],
+                            "outs": [],
+                            "exts": [],
+                            "inusers": [],
+                            "outusers": [],
+                            "inamount": 0,
+                            "outamount": 0,
+                            "extamount": 0,
+                            "time": 0,
+                            "desc": "",
+                            "currency": currency,
+                            "reference": reference_id,
+                            "_id": reference_id,
+                            "description": desc}
 
     def add_in(self, wallet_id, amount):
         role = None
         id = None
         self.transaction["inamount"] += amount
-        self.ins.append({"wallet": wallet_id, "amount": amount, "user" : None, "role": None} )
+        self.ins.append({"wallet": wallet_id, "amount": amount, "user": None, "role": None})
 
     def add_out(self, wallet_id, amount):
         role = None
         id = None
         self.transaction["outamount"] += amount
-        self.outs.append({"wallet": wallet_id, "amount": amount, "user" :None, "role": None} )
+        self.outs.append({"wallet": wallet_id, "amount": amount, "user": None, "role": None})
 
     def add_ext(self, wallet_id, amount):
         self.transaction["extamount"] += amount
-        self.exts.append({"wallet": wallet_id, "amount": amount, "user" : None, "role": None} )
-
+        self.exts.append({"wallet": wallet_id, "amount": amount, "user": None, "role": None})
 
     @property
     def time(self):
@@ -29,7 +37,6 @@ class multitransactionclass:
 
     def settime(self, value):
         self.transaction["time"] = int(value)
-
 
     @property
     def ins(self):
@@ -45,7 +52,6 @@ class multitransactionclass:
 
     def setcommission(self, value):
         self.transaction["commission"] = float(value)
-
 
     @property
     def outs(self):
@@ -80,6 +86,6 @@ class multitransactionclass:
 
     @staticmethod
     def from_json(transaction):
-        t =  multitransactionclass()
+        t = MultiTransactionClass()
         t.transaction = transaction
         return t

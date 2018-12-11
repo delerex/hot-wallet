@@ -1,14 +1,13 @@
 from bitcoin import *
 
+
 class CurrencyModel:
 
-    def FloatToDecimal(self, value):
+    def float_to_decimal(self, value):
         return int(value * 10 ** self.decimals)
 
-
-    def DecimalToFloat(self, value):
+    def decimal_to_float(self, value):
         return float(value / 10 ** self.decimals)
-
 
     def get_priv_pub_addr(self, root_seed, n):
         mk = bip32_master_key(root_seed)

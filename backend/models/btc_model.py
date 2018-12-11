@@ -3,7 +3,6 @@ from models.currency_model import CurrencyModel
 import requests
 
 
-
 class BitcoinClass(CurrencyModel):
     headers = {
         "Host": "blockchain.info",
@@ -27,15 +26,14 @@ class BitcoinClass(CurrencyModel):
 
     def get_balance(self, addr):
         resp = requests.get(f"https://blockchain.info/q/addressbalance/{addr}",
-                             allow_redirects=True)
-        return self.DecimalToFloat(int(resp.text))
-
+                            allow_redirects=True)
+        return self.decimal_to_float(int(resp.text))
 
     def sign_data(self, data, privkey):
         hash = sha256(data)
-        signature = ecdsa_raw_sign(hash, privkey )
+        signature = ecdsa_raw_sign(hash, privkey)
         return encode_sig(*signature)
 
-    def verify_data(self, data, signature,  pubkey):
+    def verify_data(self, data, signature, pubkey):
         hash = sha256(data)
         return ecdsa_raw_verify(hash, decode_sig(signature), bip32_extract_key(pubkey))

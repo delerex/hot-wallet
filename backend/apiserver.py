@@ -134,6 +134,30 @@ async def set_outs(request: BaseRequest):
     return {"error": None, "result": verify_result}
 
 
+async def send_transactions(request: Request):
+    wallet_id = request.match_info.get('wallet', None)
+    currency = request.match_info.get('currency', None)
+    ns = request.all_data.get("ns", None)
+    config = load_config()
+
+    outs = load_outs_file()
+    wouts = outs.get(wallet_id, {}).get(currency, {}).get("outs", None)
+
+    # masterwallet = config.get("Master", None)
+    # if masterwallet is None or "encrypted_seed" not in masterwallet:
+    #     return {"error": "No master wallet", "result": None}
+    # masterseed = decrypt_seed(masterwallet["encrypted_seed"], password)
+    # if masterseed is None:
+    #     return {"error": "Problems with master wallet", "result": None}
+    # btc = BitcoinClass()
+    # _priv, _pub, _addr = btc.get_priv_pub_addr(masterseed, 0)
+    # signature = btc.sign_data(json.dumps(outs), _priv)
+    # verify_result = btc.verify_data(json.dumps(outs), signature, _pub)
+    # if verify_result:
+    #     save_outs_to_file(wallet_id, currency, outs, signature)
+    return {"error": None, "result": wouts}
+
+
 routes = [
     ("*", r"/api/check/", check),
     ("*", r"/api/", check),
@@ -144,6 +168,7 @@ routes = [
     ("GET", r"/api/wallets/{wallet}/{currency}/{number}/address/", get_address),
     ("GET", r"/api/wallets/{wallet}/{currency}/{number}/balance/", get_balance),
     ("POST", r"/api/wallets/{wallet}/{currency}/outs/", set_outs),
+    ("POST", r"/api/wallets/{wallet}/{currency}/transactions/", send_transactions),
     ("POST", r"/api/login/", login),
     ("GET", r"/api/tokens/requests", withdrawal_requests),
 ]

@@ -1,12 +1,8 @@
 from bitcoin import *
-from models.currency_model import CurrencyModel
-import requests
 from ethereum import utils as u
-from ethereum import transactions as tr
-from models.multitransactions import multitransactionclass
-import requests
+
+from models.currency_model import CurrencyModel
 from models.etherscan_model import EtherScan
-from Crypto.Hash import keccak, SHA3_256
 
 
 class EthereumClass(CurrencyModel):
@@ -29,13 +25,9 @@ class EthereumClass(CurrencyModel):
 
     def get_addr_from_pub(self, pubkey, address_number):
         pk_addrs = bip32_ckd(bip32_ckd(pubkey, 0), int(address_number))
-        keyf = decode_pubkey( bip32_extract_key(pk_addrs))
+        keyf = decode_pubkey(bip32_extract_key(pk_addrs))
         addr = self.eth_pubtoaddr(keyf[0], keyf[1])
         return u.checksum_encode(addr)
 
-
     def get_balance(self, addr):
         return int(self.etherscan.balance(addr))
-
-
-
