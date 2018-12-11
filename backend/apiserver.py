@@ -43,6 +43,7 @@ async def add_wallet(request: Request):
     config = load_config()
     if wallet_id in config and "encrypted_seed" in config["wallet_id"]:
         return {"error": "Seed phrase is already set"}
+    network_type = request.all_data["network_type"]
     encrypted_seed, btc_pub, eth_pub = generate_encrypted_seed(request.all_data["mnemonic"],
                                                                request.all_data["keypassword"])
     cfg = {wallet_id: {"type": "wallet", "wallettype": request.all_data["wallettype"],

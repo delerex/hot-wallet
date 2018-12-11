@@ -49,6 +49,13 @@
                                 </select>
                             </div>
                             <div class="form-group">
+                                <label for="newNetworkType">Network type</label>
+                                <select id="newNetworkType" class="form-control network-type-selection">
+                                    <option value="main">Main</option>
+                                    <option value="testnet">Testnet</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
                                 <label for="mnemonicInput">Mnemonic</label>
                                 <textarea class="form-control" id="mnemonicInput" rows="3"></textarea>
                             </div>
@@ -496,6 +503,7 @@
                 let passwordValue = $("#passwordInput").val();
                 let password2Value = $("#password2Input").val();
                 let walletType = $("#newWalletType").val();
+                let networkType = $("#newNetworkType").val();
 
                 if( walletName.length == 0 ){
                     showAlert("Error", "Wallet name shouldn't be empty");
@@ -519,7 +527,7 @@
                     return;
                 }
 
-                APIAddWallet( walletName, mnemonicValue, passwordValue, walletType, (response) =>{
+                APIAddWallet( walletName, mnemonicValue, passwordValue, walletType, networkType, (response) =>{
                     if( response.error ){
                         showAlert("Error", response.error);
                         return;

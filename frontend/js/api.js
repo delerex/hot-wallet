@@ -71,8 +71,9 @@ function APIGetMnemonic(callback=null){
     });
 }
 
-function APIAddWallet(wallet, mnemonic, password, wallettype, callback=null){
-    PostAPI(API.wallets+wallet+"/", {mnemonic : mnemonic, keypassword : password, wallettype : wallettype }, function (response) {
+function APIAddWallet(wallet, mnemonic, password, wallettype, networkType, callback=null){
+    showAlert("Error", "Network type is " + networkType);
+    PostAPI(API.wallets+wallet+"/", {mnemonic : mnemonic, keypassword : password, wallettype : wallettype, network_type: networkType }, function (response) {
         if(callback){callback(response);}
     });
 }
