@@ -24,7 +24,7 @@ def generate_keys(mn):
     print("Ethereum PrivKey : {}".format(ethereum_priv))
     #    os.environ['CASHIER_PUB_BTC'] = bip32_privtopub( bitcoin_priv)
     #    os.environ['CASHIER_PUB_ETH'] = bip32_privtopub( ethereum_priv)
-    return (bitcoin_priv, ethereum_priv)
+    return bitcoin_priv, ethereum_priv
 
 
 def generate_encrypted_seed(mnemonic, password):

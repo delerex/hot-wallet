@@ -8,7 +8,6 @@ from aiohttp.web_request import BaseRequest, Request
 from api.middleware import error_handling_middleware, cors_middleware, request_and_auth_data_middleware
 from models.accounting import API as AccounttingAPI
 from models.btc_model import BitcoinClass
-from models.eth_model import EthereumClass
 from models.factory.currency_model_factory import CurrencyModelFactory
 from models.generate import decrypt_seed
 from models.generate import generate_mnemonic, generate_encrypted_seed
@@ -100,7 +99,7 @@ async def get_balance(request: Request):
         return {"error": "Cannot get address"}
     addr = currency_model.get_addr_from_pub(xpubkey, number)
     balance = currency_model.get_balance(addr)
-    return {"error": None, "result": currency_model.decimal_to_float(balance)}
+    return {"error": None, "result": balance}
 
 
 async def get_address(request: BaseRequest):

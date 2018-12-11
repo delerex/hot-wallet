@@ -36,7 +36,7 @@ class EthereumClass(CurrencyModel):
         return u.checksum_encode(addr)
 
     def get_balance(self, addr):
-        return int(self.etherscan.balance(addr))
+        return self.decimal_to_float(int(self.etherscan.balance(addr)))
 
     def get_xpub(self, wallet: WalletConfig) -> str:
         return wallet.eth_xpub

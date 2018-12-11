@@ -19,6 +19,7 @@ class BitcoinClass(CurrencyModel):
     def __init__(self):
         self._decimals = 10
 
+    @property
     def decimals(self):
         return self._decimals
 
