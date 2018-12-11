@@ -1,11 +1,9 @@
-import asyncio
 import functools
+import json
 
 from aiohttp import web
 from aiohttp.web_request import Request
 from aiohttp.web_response import Response
-import json
-
 
 RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -13,6 +11,7 @@ RESPONSE_HEADERS = {
     "Access-Control-Allow-Headers": "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,"
                                     "Keep-Alive,Origin,User-Agent,X-Requested-With"
 }
+
 
 async def error_handling_middleware(app, handler):
     @functools.wraps(handler)
@@ -30,8 +29,8 @@ async def error_handling_middleware(app, handler):
                     "data": {}
                 }
             }, headers=RESPONSE_HEADERS, status=ex.status_code)
-    return middleware
 
+    return middleware
 
 
 async def cors_middleware(app, handler):
@@ -40,6 +39,7 @@ async def cors_middleware(app, handler):
         if request.method == 'OPTIONS':
             return Response(status=200, headers=RESPONSE_HEADERS)
         return await handler(request, *args, **kwargs)
+
     return middleware
 
 
@@ -67,4 +67,5 @@ async def request_and_auth_data_middleware(app, handler):
         request.user = None
 
         return await handler(request, *args, **kwargs)
+
     return middleware
