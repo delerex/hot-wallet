@@ -16,3 +16,5 @@ lib64
 /venv
 /response.json
 response2.json
+/config.json
+/outs.json
