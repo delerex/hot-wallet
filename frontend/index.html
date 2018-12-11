@@ -37,6 +37,13 @@
                     <h4>New wallet</h4>
                         <form>
                             <div class="col-6">
+                            <div class="form-group network-selection">
+                                <label for="newNetworkType">Network type</label>
+                                <select id="newNetworkType" class="form-control network-type-selection">
+                                    <option value="main">Main</option>
+                                    <option value="testnet">Testnet</option>
+                                </select>
+                            </div>
                                 <div class="form-group">
                                 <label for="newWalletName">New wallet name</label>
                                 <input type="text" class="form-control" id="newWalletName" placeholder="Wallet #1">
@@ -46,13 +53,6 @@
                                 <select id="newWalletType" class="form-control wallet-type-selection">
                                     <option value="cashier">Cashier</option>
                                     <option value="tokenowner">Token Owner</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="newNetworkType">Network type</label>
-                                <select id="newNetworkType" class="form-control network-type-selection">
-                                    <option value="main">Main</option>
-                                    <option value="testnet">Testnet</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -376,6 +376,7 @@
                                     }
                                 }else{
                                     $("#master-wallet-card").remove();
+                                    $("#newNetworkType").attr("disabled", 1)
                                 }
                             }
                             if(isWalletSelected){
@@ -411,20 +412,42 @@
 
             function fetchMnemonics(){
                 APIGetMnemonic( function(response){
-                console.log("APIGetMnemonics", response)
+                console.log("APIGetMnemonics", response);
                 $("#mnemonicInput").text(response.result);
                 });
             }
 
+            function fetchNetwork() {
+                APIGetNetworkType( function (response) {
+                    if (!response.error && response.result) {
+                        let network_type = response.result.network_type;
+                        console.log("APIGetNetworkType", network_type);
+                        $(`#newNetworkType option[value=${network_type}]`).prop("selected", true)
+                    }
+
+                })
+            }
+
+            function selectNetwork(network_type) {
+                APIPutNetworkType(network_type);
+            }
+
+
 
             fetchMnemonics();
             fetchWallets();
+            fetchNetwork();
 
             $(document).on("change", ".wallet-selection", (event)=>{
                 let walletId = $("#currentWalletName").val();
                 let walletCurrency = $("#currentWalletCurrency").val();
                 $(".total-currency").val(walletCurrency);
                 selectWallet(walletId, walletCurrency)
+            });
+
+            $(document).on("change", ".network-selection", (event)=>{
+                let networkType = $("#newNetworkType").val();
+                selectNetwork(networkType);
             });
 
             $(document).on("click", "#buttonSubmitOuts", (event) =>{

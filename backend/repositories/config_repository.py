@@ -1,6 +1,7 @@
 import json
 from typing import Dict
 
+from models.network_type import NetworkType
 from models.wallet_config import WalletConfig
 
 
@@ -25,6 +26,23 @@ def save_config(config_json):
 
     with open('config.json', "w") as out_file:
         json.dump(cfg, out_file)
+
+
+def load_network_type() -> str:
+    try:
+        with open('network_type.json') as json_data:
+            d = json.load(json_data)
+            return d["network_type"]
+    except:
+        return NetworkType.MAIN
+
+
+def save_network_type(network_type: str):
+    data = {
+        "network_type": network_type
+    }
+    with open("network_type.json", "w") as out_file:
+        json.dump(data, out_file)
 
 
 def load_outs_file():

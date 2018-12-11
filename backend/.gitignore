@@ -18,3 +18,4 @@ lib64
 response2.json
 /config.json
 /outs.json
+/network_type.json

@@ -11,8 +11,10 @@ from models.btc_model import BitcoinClass
 from models.eth_model import EthereumClass
 from models.generate import decrypt_seed
 from models.generate import generate_mnemonic, generate_encrypted_seed
+from models.network_type import NetworkType
 from models.wallet_config import WalletConfig
-from repositories.config_repository import load_config, save_config, save_outs_to_file, load_outs_file
+from repositories.config_repository import load_config, save_config, save_outs_to_file, load_outs_file, \
+    load_network_type, save_network_type
 
 PORT = 3200
 
@@ -173,6 +175,21 @@ async def send_transactions(request: Request):
     return {"error": None, "result": wouts}
 
 
+async def get_network_type(request: Request):
+    network_type = load_network_type()
+    return {"error": None, "result": {
+        "network_type": network_type
+    }}
+
+
+async def put_network_type(request: Request):
+    network_type = request.all_data["network_type"]
+    if network_type not in NetworkType.ALL:
+        return {"error": f"Unknown network_type: {network_type}", "result": None}
+    save_network_type(network_type)
+    return {"error": None, "result": True}
+
+
 routes = [
     ("*", r"/api/check/", check),
     ("*", r"/api/", check),
@@ -186,6 +203,8 @@ routes = [
     ("POST", r"/api/wallets/{wallet}/{currency}/transactions/", send_transactions),
     ("POST", r"/api/login/", login),
     ("GET", r"/api/tokens/requests", withdrawal_requests),
+    ("GET",  r"/api/network/type/", get_network_type),
+    ("PUT",  r"/api/network/type/", put_network_type),
 ]
 
 
