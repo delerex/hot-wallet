@@ -3,6 +3,7 @@ from ethereum import utils as u
 
 from models.currency_model import CurrencyModel
 from models.etherscan_model import EtherScan
+from models.wallet_config import WalletConfig
 
 
 class EthereumClass(CurrencyModel):
@@ -15,9 +16,14 @@ class EthereumClass(CurrencyModel):
         "Connection": "keep-alive"
     }
 
-    def __init__(self):
-        self.decimals = 18
-        self.etherscan = EtherScan()
+    def __init__(self, network_type):
+        self._decimals = 18
+        self.etherscan = EtherScan(network_type)
+
+
+    @property
+    def decimals(self):
+        return self._decimals
 
     def eth_pubtoaddr(self, x, y):
         return u.checksum_encode(
@@ -31,3 +37,6 @@ class EthereumClass(CurrencyModel):
 
     def get_balance(self, addr):
         return int(self.etherscan.balance(addr))
+
+    def get_xpub(self, wallet: WalletConfig) -> str:
+        return wallet.eth_xpub

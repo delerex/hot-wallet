@@ -1,10 +1,18 @@
 from models.multitransactions import MultiTransactionClass
 import requests
 
+from models.network_type import NetworkType
 
-class EtherScan():
-    def __init__(self):
-        self.PUBLIC_URL = "https://api.etherscan.io/api"
+
+class EtherScan:
+    _MAIN_ENDPOINT = "https://api.etherscan.io/api"
+    _ROPSTEN_ENDPOINT = "https://api-ropsten.etherscan.io/api"
+
+    def __init__(self, network=NetworkType.MAIN):
+        if network == NetworkType.MAIN:
+            self._endpoint = self._MAIN_ENDPOINT
+        elif network == NetworkType.TESTNET:
+            self._endpoint = self._ROPSTEN_ENDPOINT
 
     def balances(self):
         res = {}
@@ -36,33 +44,33 @@ class EtherScan():
     def balance(self, wallet):
         params = {"module": "account", "action": "balance", "address": wallet, "tag": "latest"
                   }
-        r = requests.get(self.PUBLIC_URL, params)
+        r = requests.get(self._endpoint, params)
         ret = r.json()["result"]
         return ret
 
     def gas_price(self):
         params = {"module": "proxy", "action": "eth_gasPrice"
                   }
-        r = requests.get(self.PUBLIC_URL, params)
+        r = requests.get(self._endpoint, params)
         ret = r.json()["result"]
         return ret
 
     def estimate_gas(self, to, gasPrice, gas):
         params = {"module": "proxy", "action": "eth_estimateGas", "to": to, "gasPrice": gasPrice, "gas": gas
                   }
-        r = requests.get(self.PUBLIC_URL, params)
+        r = requests.get(self._endpoint, params)
         ret = r.json()["result"]
         return ret
 
     def get_transactions(self, wallet, skip=0, limit=50):
         params = {"module": "account", "action": "txlist", "address": wallet, "tag": "latest",
                   "startblock": 0, "endblock": 999999999, "sort": "asc"}
-        r = requests.get(self.PUBLIC_URL, params)
+        r = requests.get(self._endpoint, params)
         txs = r.json()
         return txs
 
     def send_transaction(self, transaction):
         params = {"module": "proxy", "action": "eth_sendRawTransaction", "hex": transaction}
-        r = requests.get(self.PUBLIC_URL, params)
+        r = requests.get(self._endpoint, params)
         txs = r.json()
         return txs

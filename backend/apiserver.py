@@ -9,6 +9,7 @@ from api.middleware import error_handling_middleware, cors_middleware, request_a
 from models.accounting import API as AccounttingAPI
 from models.btc_model import BitcoinClass
 from models.eth_model import EthereumClass
+from models.factory.currency_model_factory import CurrencyModelFactory
 from models.generate import decrypt_seed
 from models.generate import generate_mnemonic, generate_encrypted_seed
 from models.network_type import NetworkType
@@ -90,21 +91,15 @@ async def get_balance(request: Request):
     config = load_config()
     if wallet_id not in config:
         return {"error": f"Not found wallet [{wallet_id}]"}
+    network_type = load_network_type()
     wallet_config = config[wallet_id]
-    if currency == "BTC":
-        bitcoin = BitcoinClass()
-        xpubkey = wallet_config.btc_xpub
-        if xpubkey is None:
-            return {"error": "Cannot get address"}
-        addr = bitcoin.get_addr_from_pub(xpubkey, number)
-        balance = bitcoin.get_balance(addr)
-    if currency == "ETH":
-        ethereum = EthereumClass()
-        xpubkey = wallet_config.eth_xpub
-        if xpubkey is None:
-            return {"error": "Cannot get address"}
-        addr = ethereum.get_addr_from_pub(xpubkey, number)
-        balance = ethereum.get_balance(addr)
+    factory = CurrencyModelFactory()
+    currency_model = factory.get_currency_model(currency, network_type)
+    xpubkey = currency_model.get_xpub(wallet_config)
+    if xpubkey is None:
+        return {"error": "Cannot get address"}
+    addr = currency_model.get_addr_from_pub(xpubkey, number)
+    balance = currency_model.get_balance(addr)
     return {"error": None, "result": balance}
 
 
@@ -116,16 +111,13 @@ async def get_address(request: BaseRequest):
     if wallet_id not in config:
         return {"error": f"Not found wallet [{wallet_id}]"}
     wallet_config = config[wallet_id]
-    if currency == "BTC":
-        xpubkey = wallet_config.btc_xpub
-        if xpubkey is None:
-            return {"error": "Cannot get address"}
-        addr = BitcoinClass().get_addr_from_pub(xpubkey, number)
-    if currency == "ETH":
-        xpubkey = wallet_config.eth_xpub
-        if xpubkey is None:
-            return {"error": "Cannot get address"}
-        addr = EthereumClass().get_addr_from_pub(xpubkey, number)
+    network_type = load_network_type()
+    factory = CurrencyModelFactory()
+    currency_model = factory.get_currency_model(currency, network_type)
+    xpubkey = currency_model.get_xpub(wallet_config)
+    if xpubkey is None:
+        return {"error": "Cannot get address"}
+    addr = currency_model.get_addr_from_pub(xpubkey, number)
 
     return {"error": None, "result": addr}
 

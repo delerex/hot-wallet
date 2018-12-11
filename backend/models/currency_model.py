@@ -1,12 +1,16 @@
+import abc
+
 from bitcoin import *
 
+from models.wallet_config import WalletConfig
 
-class CurrencyModel:
 
-    def float_to_decimal(self, value):
+class CurrencyModel(abc.ABC):
+
+    def float_to_decimal(self, value) -> int:
         return int(value * 10 ** self.decimals)
 
-    def decimal_to_float(self, value):
+    def decimal_to_float(self, value) -> float:
         return float(value / 10 ** self.decimals)
 
     def get_priv_pub_addr(self, root_seed, n):
@@ -16,4 +20,21 @@ class CurrencyModel:
         pub = bip32_privtopub(xpriv)
 
         addr = privtoaddr(priv)
-        return (priv, pub, addr)
+        return priv, pub, addr
+
+    @property
+    @abc.abstractmethod
+    def decimals(self):
+        pass
+
+    @abc.abstractmethod
+    def get_addr_from_pub(self, pubkey, address_number):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def get_balance(self, addr):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def get_xpub(self, wallet: WalletConfig) -> str:
+        raise NotImplementedError()

@@ -2,8 +2,11 @@ from bitcoin import *
 from models.currency_model import CurrencyModel
 import requests
 
+from models.wallet_config import WalletConfig
+
 
 class BitcoinClass(CurrencyModel):
+
     headers = {
         "Host": "blockchain.info",
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -14,7 +17,10 @@ class BitcoinClass(CurrencyModel):
     }
 
     def __init__(self):
-        self.decimals = 10
+        self._decimals = 10
+
+    def decimals(self):
+        return self._decimals
 
     def get_addr_from_pub(self, pubkey, address_number):
         pk_addrs = bip32_ckd(bip32_ckd(pubkey, 0), address_number)
@@ -37,3 +43,6 @@ class BitcoinClass(CurrencyModel):
     def verify_data(self, data, signature, pubkey):
         hash = sha256(data)
         return ecdsa_raw_verify(hash, decode_sig(signature), bip32_extract_key(pubkey))
+
+    def get_xpub(self, wallet: WalletConfig) -> str:
+        return wallet.btc_xpub
