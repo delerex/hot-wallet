@@ -79,6 +79,13 @@
         <div class="row">
             <div class="col-12 d-none" id="select-wallet-form">
                 <hr>
+                <h4>Network</h4>
+                <div class="row">
+                    <div class="col-6">
+                        <span id="networkType"></span>
+                    </div>
+                </div>
+                <hr>
                 <h4>Wallets</h4>
                 <div class="col-12">
                     <form>
@@ -423,6 +430,7 @@
                         let network_type = response.result.network_type;
                         console.log("APIGetNetworkType", network_type);
                         $(`#newNetworkType option[value=${network_type}]`).prop("selected", true)
+                        $("#networkType").text(network_type)
                     }
 
                 })
