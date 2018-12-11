@@ -1,5 +1,6 @@
 import functools
 import json
+import logging
 
 from aiohttp import web
 from aiohttp.web_request import Request
@@ -11,6 +12,9 @@ RESPONSE_HEADERS = {
     "Access-Control-Allow-Headers": "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,"
                                     "Keep-Alive,Origin,User-Agent,X-Requested-With"
 }
+
+
+app_log = logging.getLogger(__name__)
 
 
 async def error_handling_middleware(app, handler):
@@ -29,6 +33,20 @@ async def error_handling_middleware(app, handler):
                     "data": {}
                 }
             }, headers=RESPONSE_HEADERS, status=ex.status_code)
+        except Exception as ex:
+            app_log.exception("UnexpectedError: {}".format(ex), exc_info=True, extra={
+                "tags": {
+                    "module": handler.__module__,
+                    "url": request.url
+                }
+            })
+            return web.json_response({
+                "error": {
+                    "code": "API_UnexpectedError",
+                    "message": "Something went wrong",
+                    "data": {}
+                }
+            }, headers=RESPONSE_HEADERS, status=500)
 
     return middleware
 
