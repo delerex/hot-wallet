@@ -1,16 +1,18 @@
-from concurrent.futures import ThreadPoolExecutor
 import asyncio
+import json
+from concurrent.futures import ThreadPoolExecutor
+
 from aiohttp import web
+from aiohttp.web_request import BaseRequest, Request
+
 from api.middleware import error_handling_middleware, cors_middleware, request_and_auth_data_middleware
 from models.accounting import API as AccounttingAPI
-from repositories.config_repository import load_config, save_config, save_outs_to_file, load_outs_file
-from models.generate import generate_mnemonic, generate_keys, generate_encrypted_seed
 from models.btc_model import BitcoinClass
 from models.eth_model import EthereumClass
 from models.generate import decrypt_seed
-import json
-
-from aiohttp.web_request import BaseRequest, Request
+from models.generate import generate_mnemonic, generate_encrypted_seed
+from models.wallet_config import WalletConfig
+from repositories.config_repository import load_config, save_config, save_outs_to_file, load_outs_file
 
 PORT = 3200
 
@@ -41,14 +43,20 @@ async def get_mnemonic(request: Request):
 async def add_wallet(request: Request):
     wallet_id = request.match_info.get('wallet', None)
     config = load_config()
-    if wallet_id in config and "encrypted_seed" in config["wallet_id"]:
+    if wallet_id in config and not config[wallet_id].has_encrypted_seed():
         return {"error": "Seed phrase is already set"}
     network_type = request.all_data["network_type"]
-    encrypted_seed, btc_pub, eth_pub = generate_encrypted_seed(request.all_data["mnemonic"],
-                                                               request.all_data["keypassword"])
-    cfg = {wallet_id: {"type": "wallet", "wallettype": request.all_data["wallettype"],
-                       "encrypted_seed": str(encrypted_seed), "BTC": btc_pub, "ETH": eth_pub}}
-    save_config(cfg)
+    encrypted_seed, btc_xpub, eth_xpub = generate_encrypted_seed(request.all_data["mnemonic"],
+                                                                 request.all_data["keypassword"])
+    cfg = WalletConfig(
+        wallet_id=wallet_id,
+        wallet_type=request.all_data["wallettype"],
+        network_type=network_type,
+        encrypted_seed=str(encrypted_seed),
+        btc_xpub=btc_xpub,
+        eth_xpub=eth_xpub
+    )
+    save_config(cfg.to_dict())
     return {"error": None, "result": True}
 
 
@@ -56,7 +64,7 @@ async def get_wallets(request: Request):
     config = load_config()
     wallets = []
     for w in config:
-        if config[w].get("type", None) == "wallet":
+        if isinstance(config[w], WalletConfig):
             wallets.append(w)
 
     return {"error": None, "result": wallets}
@@ -67,8 +75,8 @@ async def get_wallet(request: Request):
     outs = load_outs_file()
     wallet_id = request.match_info.get('wallet', None)
     res = {
-        "BTC": {"pub": config[wallet_id]["BTC"], "outs": outs.get(wallet_id, {}).get("BTC", {}).get("outs", None)},
-        "ETH": {"pub": config[wallet_id]["ETH"], "outs": outs.get(wallet_id, {}).get("ETH", {}).get("outs", None)}
+        "BTC": {"pub": config[wallet_id].btc_xpub, "outs": outs.get(wallet_id, {}).get("BTC", {}).get("outs", None)},
+        "ETH": {"pub": config[wallet_id].eth_xpub, "outs": outs.get(wallet_id, {}).get("ETH", {}).get("outs", None)}
     }
     return {"error": None, "result": res}
 
@@ -78,19 +86,22 @@ async def get_balance(request: Request):
     currency = request.match_info.get('currency', None)
     number = request.match_info.get('number', None)
     config = load_config()
+    if wallet_id not in config:
+        return {"error": f"Not found wallet [{wallet_id}]"}
+    wallet_config = config[wallet_id]
     if currency == "BTC":
         bitcoin = BitcoinClass()
-        pubkey = config.get(wallet_id, {}).get("BTC", None)
-        if pubkey is None:
+        xpubkey = wallet_config.btc_xpub
+        if xpubkey is None:
             return {"error": "Cannot get address"}
-        addr = bitcoin.get_addr_from_pub(pubkey, number)
+        addr = bitcoin.get_addr_from_pub(xpubkey, number)
         balance = bitcoin.get_balance(addr)
     if currency == "ETH":
         ethereum = EthereumClass()
-        pubkey = config.get(wallet_id, {}).get("ETH", None)
-        if pubkey is None:
+        xpubkey = wallet_config.eth_xpub
+        if xpubkey is None:
             return {"error": "Cannot get address"}
-        addr = ethereum.get_addr_from_pub(pubkey, number)
+        addr = ethereum.get_addr_from_pub(xpubkey, number)
         balance = ethereum.get_balance(addr)
     return {"error": None, "result": balance}
 
@@ -100,16 +111,19 @@ async def get_address(request: BaseRequest):
     currency = request.match_info.get('currency', None)
     number = request.match_info.get('number', None)
     config = load_config()
+    if wallet_id not in config:
+        return {"error": f"Not found wallet [{wallet_id}]"}
+    wallet_config = config[wallet_id]
     if currency == "BTC":
-        pubkey = config.get(wallet_id, {}).get("BTC", None)
-        if pubkey is None:
+        xpubkey = wallet_config.btc_xpub
+        if xpubkey is None:
             return {"error": "Cannot get address"}
-        addr = BitcoinClass().get_addr_from_pub(pubkey, number)
+        addr = BitcoinClass().get_addr_from_pub(xpubkey, number)
     if currency == "ETH":
-        pubkey = config.get(wallet_id, {}).get("ETH", None)
-        if pubkey is None:
+        xpubkey = wallet_config.eth_xpub
+        if xpubkey is None:
             return {"error": "Cannot get address"}
-        addr = EthereumClass().get_addr_from_pub(pubkey, number)
+        addr = EthereumClass().get_addr_from_pub(xpubkey, number)
 
     return {"error": None, "result": addr}
 
@@ -121,9 +135,9 @@ async def set_outs(request: BaseRequest):
     outs = request.all_data.get("outs")
     config = load_config()
     masterwallet = config.get("Master", None)
-    if masterwallet is None or "encrypted_seed" not in masterwallet:
+    if masterwallet is None or not masterwallet.has_encrypted_seed():
         return {"error": "No master wallet", "result": None}
-    masterseed = decrypt_seed(masterwallet["encrypted_seed"], password)
+    masterseed = decrypt_seed(masterwallet.encrypted_seed, password)
     if masterseed is None:
         return {"error": "Problems with master wallet", "result": None}
     btc = BitcoinClass()

@@ -1,7 +1,15 @@
 import json
+from typing import Dict
+
+from models.wallet_config import WalletConfig
 
 
-def load_config():
+def load_config() -> Dict[str, WalletConfig]:
+    raw = _load_raw_config()
+    return WalletConfig.from_dict(raw)
+
+
+def _load_raw_config() -> dict:
     try:
         with open('config.json') as json_data:
             d = json.load(json_data)
@@ -11,7 +19,7 @@ def load_config():
 
 
 def save_config(config_json):
-    cfg = load_config()
+    cfg = _load_raw_config()
     for x in config_json:
         cfg[x] = config_json[x]
 
