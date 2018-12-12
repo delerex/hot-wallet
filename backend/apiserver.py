@@ -127,16 +127,18 @@ async def set_outs(request: BaseRequest):
     password = request.all_data.get("password")
     outs = request.all_data.get("outs")
     config = load_config()
+    network_type = load_network_type()
     masterwallet = config.get("Master", None)
     if masterwallet is None or not masterwallet.has_encrypted_seed():
         return {"error": "No master wallet", "result": None}
     masterseed = decrypt_seed(masterwallet.encrypted_seed, password)
     if masterseed is None:
         return {"error": "Problems with master wallet", "result": None}
-    btc = BitcoinClass()
-    _priv, _pub, _addr = btc.get_priv_pub_addr(masterseed, 0)
-    signature = btc.sign_data(json.dumps(outs), _priv)
-    verify_result = btc.verify_data(json.dumps(outs), signature, _pub)
+    factory = CurrencyModelFactory()
+    btc_model = BitcoinClass()
+    _priv, _pub, _addr = btc_model.get_priv_pub_addr(masterseed, 0)
+    signature = btc_model.sign_data(json.dumps(outs), _priv)
+    verify_result = btc_model.verify_data(json.dumps(outs), signature, _pub)
     if verify_result:
         save_outs_to_file(wallet_id, currency, outs, signature)
     return {"error": None, "result": verify_result}
@@ -145,25 +147,51 @@ async def set_outs(request: BaseRequest):
 async def send_transactions(request: Request):
     wallet_id = request.match_info.get('wallet', None)
     currency = request.match_info.get('currency', None)
-    ns = request.all_data.get("ns", None)
+    password = request.all_data.get("password", None)
+    number = request.match_info.get('number', None)
     config = load_config()
 
-    outs = load_outs_file()
-    wouts = outs.get(wallet_id, {}).get(currency, {}).get("outs", None)
+    wallet = config.get(wallet_id, None)
+    if wallet is None or not wallet.has_encrypted_seed():
+        return {"error": f"No wallet [{wallet_id}]", "result": None}
+    # walletseed = decrypt_seed(wallet.encrypted_seed, password)
+    # if walletseed is None:
+    #     return {"error": f"Problems with [{wallet_id}] wallet", "result": None}
 
-    # masterwallet = config.get("Master", None)
-    # if masterwallet is None or "encrypted_seed" not in masterwallet:
-    #     return {"error": "No master wallet", "result": None}
-    # masterseed = decrypt_seed(masterwallet["encrypted_seed"], password)
-    # if masterseed is None:
-    #     return {"error": "Problems with master wallet", "result": None}
-    # btc = BitcoinClass()
-    # _priv, _pub, _addr = btc.get_priv_pub_addr(masterseed, 0)
-    # signature = btc.sign_data(json.dumps(outs), _priv)
-    # verify_result = btc.verify_data(json.dumps(outs), signature, _pub)
-    # if verify_result:
-    #     save_outs_to_file(wallet_id, currency, outs, signature)
-    return {"error": None, "result": wouts}
+    # TODO remove masterwallet, using only cashier wallet
+    masterwallet = config.get("Master", None)
+    if masterwallet is None or not masterwallet.has_encrypted_seed():
+        return {"error": "No master wallet", "result": None}
+    masterseed = decrypt_seed(masterwallet.encrypted_seed, password)
+    if masterseed is None:
+        return {"error": "Problems with master wallet", "result": None}
+
+    network_type = load_network_type()
+    outs = load_outs_file()
+    if wallet_id not in outs:
+        return {"error": f"No outs for wallet [{wallet_id}]", "result": None}
+    wallet_outs = outs[wallet_id]
+    if currency not in wallet_outs:
+        return {"error": f"No outs for wallet [{wallet_id}] and currency [{currency}]", "result": None}
+    signature = wallet_outs[currency]["signature"]
+    currency_outs: dict = wallet_outs[currency]["outs"]
+    factory = CurrencyModelFactory()
+
+    currency_model = factory.get_currency_model(currency, network_type)
+
+    # TODO generated derived wallet not from walletseed, but from walletseed
+    # TODO get all data about derived wallets from 0 to n
+    btc_model = BitcoinClass()
+    _priv, _pub, _addr = btc_model.get_priv_pub_addr(masterseed, 0)
+    signature = btc_model.sign_data(json.dumps(outs), _priv)
+    verify_result = btc_model.verify_data(json.dumps(outs), signature, _pub)
+
+    print(f"send_transaction, verify_result: {verify_result}")
+    print(f"currency_outs: {currency_outs}")
+    currency_outs: dict = wallet_outs[currency]["outs"]
+    currency_model.send_transactions(masterseed, currency_outs)
+
+    return {"error": None, "result": True}
 
 
 async def get_network_type(request: Request):
@@ -222,7 +250,6 @@ async def init(loop, host="0.0.0.0", port=PORT):
 async def shutdown(server, app, handler):
     server.close()
     await server.wait_closed()
-    app.db.close()
     await app.shutdown()
     # await handler.finish_connections(10.0)
     await app.cleanup()

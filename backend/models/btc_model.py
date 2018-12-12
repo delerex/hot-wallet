@@ -36,14 +36,20 @@ class BitcoinClass(CurrencyModel):
                             allow_redirects=True)
         return self.decimal_to_float(int(resp.text))
 
-    def sign_data(self, data, privkey):
-        hash = sha256(data)
-        signature = ecdsa_raw_sign(hash, privkey)
-        return encode_sig(*signature)
+    def get_priv_pub_addr(self, root_seed, n):
+        mk = bip32_master_key(root_seed)
+        xpriv = bip32_ckd(bip32_ckd(bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), 2 ** 31), 2 ** 31), 0), n)
+        priv = bip32_extract_key(xpriv)
+        pub = bip32_privtopub(xpriv)
 
-    def verify_data(self, data, signature, pubkey):
-        hash = sha256(data)
-        return ecdsa_raw_verify(hash, decode_sig(signature), bip32_extract_key(pubkey))
+        addr = privtoaddr(priv)
+        return priv, pub, addr
 
     def get_xpub(self, wallet: WalletConfig) -> str:
         return wallet.btc_xpub
+
+    def get_nonce(self, addr) -> str:
+        raise NotImplementedError()
+
+    def send_transactions(self, outs):
+        raise NotImplementedError()

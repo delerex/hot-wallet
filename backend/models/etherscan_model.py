@@ -1,3 +1,5 @@
+from typing import Optional
+
 from models.multitransactions import MultiTransactionClass
 import requests
 
@@ -11,8 +13,11 @@ class EtherScan:
     def __init__(self, network=NetworkType.MAIN):
         if network == NetworkType.MAIN:
             self._endpoint = self._MAIN_ENDPOINT
+            self._chain_id = 1
         elif network == NetworkType.TESTNET:
             self._endpoint = self._ROPSTEN_ENDPOINT
+            self._chain_id = 3
+
 
     def balances(self):
         res = {}
@@ -32,9 +37,10 @@ class EtherScan:
 
         return mt.to_json()
 
-    def transactions(self, wallet_id):
+    def transactions(self, wallet_id, skip=0, limit=50):
         res = []
-        r = self.get_transactions(wallet_id)
+        r = self.get_transactions(wallet_id, skip, limit)
+        print(f"transactions response: {r}")
         for ct in r["result"]:
             if int(ct["isError"]) == 0:
                 t = self.process_transaction(ct)
@@ -48,12 +54,17 @@ class EtherScan:
         ret = r.json()["result"]
         return ret
 
+    @property
+    def chain_id(self):
+        return self._chain_id
+
+    @property
     def gas_price(self):
         params = {"module": "proxy", "action": "eth_gasPrice"
                   }
         r = requests.get(self._endpoint, params)
         ret = r.json()["result"]
-        return ret
+        return int(ret, 16)
 
     def estimate_gas(self, to, gasPrice, gas):
         params = {"module": "proxy", "action": "eth_estimateGas", "to": to, "gasPrice": gasPrice, "gas": gas
@@ -69,8 +80,20 @@ class EtherScan:
         txs = r.json()
         return txs
 
-    def send_transaction(self, transaction):
+    def send_transaction(self, transaction) -> Optional[str]:
         params = {"module": "proxy", "action": "eth_sendRawTransaction", "hex": transaction}
         r = requests.get(self._endpoint, params)
         txs = r.json()
-        return txs
+        if "status" in txs and txs["status"] == "0":
+            print(f"send_transaction response: {txs}")
+            return None
+        return txs["result"]
+
+    def get_nonce(self, wallet_id) -> int:
+        outcount = 0
+        transactions = self.transactions(wallet_id, limit=10000)
+        for ethtx in transactions:
+            for o in ethtx["ins"]:
+                if o.get("wallet", None) == wallet_id:
+                    outcount += 1
+        return outcount

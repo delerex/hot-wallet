@@ -28,6 +28,7 @@ def generate_keys(mn):
 
 
 def generate_encrypted_seed(mnemonic, password):
+    print(f"generate_encrypted_seed: {mnemonic}, {password}")
     m = Mnemonic(language='english')
     if password is None:
         return None
@@ -45,10 +46,13 @@ def generate_encrypted_seed(mnemonic, password):
     aes_cipher = AES.new(aes_key, AES.MODE_CBC, b"ComBoxPasswordIV")
     encrypted_seed = aes_cipher.encrypt(seed + seed_hash_b)
 
+    print(f"encrypted_seed type: {type(encrypted_seed)}")
     base58_encrypted_seed = base58.b58encode(encrypted_seed)
-    print("Encrypted root seed: {}".format(base58_encrypted_seed))
+    print(f"Encrypted root seed: {base58_encrypted_seed}, type: {type(base58_encrypted_seed)}")
     btcxpub, ethxpub = seed_to_xpub_keys(seed)
-    return base58_encrypted_seed.decode("ascii"), btcxpub, ethxpub
+    if not isinstance(base58_encrypted_seed, str):
+        base58_encrypted_seed = base58_encrypted_seed.decode("ascii")
+    return base58_encrypted_seed, btcxpub, ethxpub
 
 
 def decrypt_seed(seed, password=None):
