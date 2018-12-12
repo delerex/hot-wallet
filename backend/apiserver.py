@@ -151,20 +151,16 @@ async def send_transactions(request: Request):
     number = request.match_info.get('number', None)
     config = load_config()
 
-    wallet = config.get(wallet_id, None)
-    if wallet is None or not wallet.has_encrypted_seed():
-        return {"error": f"No wallet [{wallet_id}]", "result": None}
-    # walletseed = decrypt_seed(wallet.encrypted_seed, password)
-    # if walletseed is None:
-    #     return {"error": f"Problems with [{wallet_id}] wallet", "result": None}
-
-    # TODO remove masterwallet, using only cashier wallet
     masterwallet = config.get("Master", None)
     if masterwallet is None or not masterwallet.has_encrypted_seed():
         return {"error": "No master wallet", "result": None}
-    masterseed = decrypt_seed(masterwallet.encrypted_seed, password)
-    if masterseed is None:
-        return {"error": "Problems with master wallet", "result": None}
+
+    wallet = config.get(wallet_id, None)
+    if wallet is None or not wallet.has_encrypted_seed():
+        return {"error": f"No wallet [{wallet_id}]", "result": None}
+    walletseed = decrypt_seed(wallet.encrypted_seed, password)
+    if walletseed is None:
+        return {"error": f"Problems with [{wallet_id}] wallet", "result": None}
 
     network_type = load_network_type()
     outs = load_outs_file()
@@ -179,17 +175,17 @@ async def send_transactions(request: Request):
 
     currency_model = factory.get_currency_model(currency, network_type)
 
-    # TODO generated derived wallet not from walletseed, but from walletseed
-    # TODO get all data about derived wallets from 0 to n
-    btc_model = BitcoinClass()
-    _priv, _pub, _addr = btc_model.get_priv_pub_addr(masterseed, 0)
-    signature = btc_model.sign_data(json.dumps(outs), _priv)
-    verify_result = btc_model.verify_data(json.dumps(outs), signature, _pub)
+    # TODO сheck signature
+    # btc_model = BitcoinClass()
+    # signature = currency_outs[currency]["signature"]
+    # verify_result = btc_model.verify_data(json.dumps(outs), signature, masterwallet.btc_xpub)
+    # if not verify_result:
+    #     return {"error": f"Wrong outs signature", "result": None}
+    # print(f"send_transaction, verify_result: {verify_result}")
 
-    print(f"send_transaction, verify_result: {verify_result}")
     print(f"currency_outs: {currency_outs}")
     currency_outs: dict = wallet_outs[currency]["outs"]
-    currency_model.send_transactions(masterseed, currency_outs)
+    currency_model.send_transactions(walletseed, currency_outs)
 
     return {"error": None, "result": True}
 

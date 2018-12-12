@@ -4,7 +4,6 @@ import rlp
 import rlp.utils
 from bitcoin import *
 from ethereum import utils as u, transactions
-from two1.bitcoin import HDPrivateKey
 
 from models.currency_model import CurrencyModel
 from models.etherscan_model import EtherScan
@@ -79,6 +78,3 @@ class EthereumClass(CurrencyModel):
             txs.append(tx_hash)
 
         return txs
-
-    def research_problem(self, masterseed):
-        masterkey = HDPrivateKey
