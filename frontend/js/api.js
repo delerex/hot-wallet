@@ -163,3 +163,11 @@ function APIPutNetworkType(network_type, callback = null) {
             }
         });
 }
+
+function APISendTransactions(wallet, currency, number, password, callback = null) {
+    PostAPI(API.wallets + wallet + "/" + currency + "/transactions/", {password: password}, function (response) {
+        if (callback) {
+            callback(response);
+        }
+    });
+}

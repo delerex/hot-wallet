@@ -128,6 +128,26 @@
                         </div>
                     </form>
                 </div>
+                <hr>
+                <h4>Transactions</h4>
+                <div class="col-12">
+                        <form id="transactions-form">
+                            <div id="transactions-entries">
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-3">
+                                        <label for="passwordInput">Password</label>
+                                        <input type="password" class="form-control" id="cashierPasswordInput" placeholder="Cashier Key password">
+                                </div>
+
+                                <div class="form-group col-2 mt-auto">
+                                        <button type="submit" class="btn btn-primary" id="buttonSendTransactions">Send</button>
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
             </div>
         </div>
 
@@ -456,6 +476,18 @@
             $(document).on("change", ".network-selection", (event)=>{
                 let networkType = $("#newNetworkType").val();
                 selectNetwork(networkType);
+            });
+
+            $(document).on("click", "#buttonSendTransactions", (event) => {
+                event.preventDefault();
+                let walletId = $("#currentWalletName").val();
+                let walletCurrency = $("#currentWalletCurrency").val();
+                let cashierPassword = $("#cashierPasswordInput").val();
+                let walletAddressTo = parseInt($("#currentWalletTo").val());
+                APISendTransactions(walletId, walletCurrency, walletAddressTo, cashierPassword, function(response){
+                    console.log("APISendTransactions", response);
+                    // fetchWallets();
+                });
             });
 
             $(document).on("click", "#buttonSubmitOuts", (event) =>{
