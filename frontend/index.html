@@ -562,7 +562,7 @@
             $(document).on("click", "#buttonAddWallet", (event) => {
                 event.preventDefault();
                 let walletName = $("#newWalletName").val();
-                let mnemonicValue = $("#mnemonicInput").text();
+                let mnemonicValue = $("#mnemonicInput").val();
                 let passwordValue = $("#passwordInput").val();
                 let password2Value = $("#password2Input").val();
                 let walletType = $("#newWalletType").val();
