@@ -58,12 +58,12 @@ class EthereumClass(CurrencyModel):
         txs = self.etherscan.get_transactions(addr)
         return len(txs)
 
-    def send_transactions(self, masterseed, outs) -> List[str]:
+    def send_transactions(self, masterseed, outs_percent, start, end) -> List[str]:
         in_priv, in_pub, in_addr = self.get_priv_pub_addr(masterseed, 0)
         gas_price = self.etherscan.gas_price
         estimated_gas = 21000
         txs = []
-        for out_addr, proportion in outs.items():
+        for out_addr, proportion in outs_percent.items():
             nonce = self.etherscan.get_nonce(in_addr)
             tx = transactions.Transaction(nonce=nonce,
                                           to=out_addr[2:],

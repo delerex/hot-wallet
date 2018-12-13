@@ -148,7 +148,14 @@ async def send_transactions(request: Request):
     wallet_id = request.match_info.get('wallet', None)
     currency = request.match_info.get('currency', None)
     password = request.all_data.get("password", None)
-    number = request.match_info.get('number', None)
+    start = request.match_info.get("start", None)
+    end = request.match_info.get("end", None)
+
+    if not start:
+        return {"error": "No start field", "result": None}
+    if not end:
+        return {"error": "No end field", "result": None}
+
     config = load_config()
 
     masterwallet = config.get("Master", None)
@@ -169,7 +176,6 @@ async def send_transactions(request: Request):
     wallet_outs = outs[wallet_id]
     if currency not in wallet_outs:
         return {"error": f"No outs for wallet [{wallet_id}] and currency [{currency}]", "result": None}
-    signature = wallet_outs[currency]["signature"]
     currency_outs: dict = wallet_outs[currency]["outs"]
     factory = CurrencyModelFactory()
 
@@ -185,7 +191,7 @@ async def send_transactions(request: Request):
 
     print(f"currency_outs: {currency_outs}")
     currency_outs: dict = wallet_outs[currency]["outs"]
-    currency_model.send_transactions(walletseed, currency_outs)
+    currency_model.send_transactions(walletseed, currency_outs, start, end)
 
     return {"error": None, "result": True}
 
