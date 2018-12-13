@@ -164,8 +164,8 @@ function APIPutNetworkType(network_type, callback = null) {
         });
 }
 
-function APISendTransactions(wallet, currency, from, to, password, callback = null) {
-    PostAPI(API.wallets + wallet + "/" + currency + "/transactions/", {password: password, from: from, to: to}, function (response) {
+function APISendTransactions(wallet, currency, start, end, password, callback = null) {
+    PostAPI(API.wallets + wallet + "/" + currency + "/transactions/", {password: password, start: start, end: end}, function (response) {
         if (callback) {
             callback(response);
         }
