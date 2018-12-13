@@ -1,6 +1,6 @@
 from typing import Dict
 
-from models.btc_model import BitcoinClass
+from models.btc.btc_model import BitcoinClass
 from models.currency_model import CurrencyModel
 from models.eth.eth_model import EthereumClass
 from models.utils.singleton import Singleton
@@ -21,7 +21,7 @@ class CurrencyModelFactory(metaclass=Singleton):
         if currency == "ETH":
             model = EthereumClass(network_type)
         elif currency == "BTC":
-            model = BitcoinClass()
+            model = BitcoinClass(network_type)
         else:
             raise NotImplementedError(f"Unsupported currency: {currency}")
         self._models[key] = model

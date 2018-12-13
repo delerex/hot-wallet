@@ -4,6 +4,8 @@ from Crypto.Hash import SHA256
 from bitcoin import *
 from mnemonic import Mnemonic
 
+from models.network_type import NetworkType
+
 
 def generate_mnemonic() -> str:
     new_key = random_key()
@@ -27,7 +29,7 @@ def generate_keys(mn):
     return bitcoin_priv, ethereum_priv
 
 
-def generate_encrypted_seed(mnemonic, password):
+def generate_encrypted_seed(mnemonic, password, network_type):
     print(f"generate_encrypted_seed: {mnemonic}, {password}")
     m = Mnemonic(language='english')
     if password is None:
@@ -49,7 +51,7 @@ def generate_encrypted_seed(mnemonic, password):
     print(f"encrypted_seed type: {type(encrypted_seed)}")
     base58_encrypted_seed = base58.b58encode(encrypted_seed)
     print(f"Encrypted root seed: {base58_encrypted_seed}, type: {type(base58_encrypted_seed)}")
-    btcxpub, ethxpub = seed_to_xpub_keys(seed)
+    btcxpub, ethxpub = seed_to_xpub_keys(seed, network_type)
     if not isinstance(base58_encrypted_seed, str):
         base58_encrypted_seed = base58_encrypted_seed.decode("ascii")
     return base58_encrypted_seed, btcxpub, ethxpub
@@ -79,11 +81,16 @@ def decrypt_seed(seed, password=None):
     return decrypted_seed[0:64]
 
 
-def seed_to_xpub_keys(seed):
-    mk = bip32_master_key(seed)
+def seed_to_xpub_keys(seed, network_type):
+    if network_type == NetworkType.MAIN:
+        vbytes = MAINNET_PRIVATE
+    else:
+        vbytes = TESTNET_PRIVATE
+    mk = bip32_master_key(seed, vbytes)
+    mk_ethereum = bip32_master_key(seed)
 
     bitcoin_priv = bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), 2 ** 31), 2 ** 31)
-    ethereum_priv = bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), 60 + 2 ** 31), 2 ** 31)
+    ethereum_priv = bip32_ckd(bip32_ckd(bip32_ckd(mk_ethereum, 44 + 2 ** 31), 60 + 2 ** 31), 2 ** 31)
 
     bitcoin_pub = bip32_privtopub(bitcoin_priv)
     ethereum_pub = bip32_privtopub(ethereum_priv)

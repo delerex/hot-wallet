@@ -7,7 +7,7 @@ from aiohttp.web_request import BaseRequest, Request
 
 from api.middleware import error_handling_middleware, cors_middleware, request_and_auth_data_middleware
 from models.accounting import API as AccounttingAPI
-from models.btc_model import BitcoinClass
+from models.btc.btc_model import BitcoinClass
 from models.factory.currency_model_factory import CurrencyModelFactory
 from models.generate import decrypt_seed
 from models.generate import generate_mnemonic, generate_encrypted_seed
@@ -49,7 +49,8 @@ async def add_wallet(request: Request):
         return {"error": "Seed phrase is already set"}
     network_type = request.all_data["network_type"]
     encrypted_seed, btc_xpub, eth_xpub = generate_encrypted_seed(request.all_data["mnemonic"],
-                                                                 request.all_data["keypassword"])
+                                                                 request.all_data["keypassword"],
+                                                                 network_type)
     cfg = WalletConfig(
         wallet_id=wallet_id,
         wallet_type=request.all_data["wallettype"],
