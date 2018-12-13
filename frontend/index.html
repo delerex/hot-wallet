@@ -490,7 +490,7 @@
                 let walletId = $("#currentWalletName").val();
                 let walletCurrency = $("#currentWalletCurrency").val();
                 let cashierPassword = $("#cashierPasswordInput").val();
-                let walletAddressFrom = parseInt($("#inWalletFrom")).val();
+                let walletAddressFrom = parseInt($("#inWalletFrom").val());
                 let walletAddressTo = parseInt($("#inWalletTo").val());
                 APISendTransactions(walletId, walletCurrency, walletAddressFrom, walletAddressTo, cashierPassword,
                     function(response){
@@ -541,7 +541,7 @@
             $(document).on("click","#buttonAddOut",  (event)=>{
                 event.preventDefault();
                 $("#outs-entries").append(renderOutFormRow(null, 100));
-            })
+            });
 
 
             $(document).on("click", "#buttonShowOuts", (event)=>{
