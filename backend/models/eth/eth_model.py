@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import List
 
 import rlp
 import rlp.utils
@@ -6,7 +6,10 @@ from bitcoin import *
 from ethereum import utils as u, transactions
 
 from models.currency_model import CurrencyModel
-from models.etherscan_model import EtherScan
+from models.eth.eth_transaction_distribution import EthTransactionDistribution
+from models.eth.etherscan_model import EtherScan
+from models.eth.input_wallet import InputWallet
+from models.eth.transaction_intent import TransactionIntent
 from models.wallet_config import WalletConfig
 
 
@@ -23,6 +26,7 @@ class EthereumClass(CurrencyModel):
     def __init__(self, network_type):
         self._decimals = 18
         self.etherscan = EtherScan(network_type)
+        self._transaction_distribution = EthTransactionDistribution()
 
     @property
     def decimals(self):
@@ -58,20 +62,34 @@ class EthereumClass(CurrencyModel):
         txs = self.etherscan.get_transactions(addr)
         return len(txs)
 
-    def send_transactions(self, masterseed, outs_percent, start, end) -> List[str]:
-        in_priv, in_pub, in_addr = self.get_priv_pub_addr(masterseed, 0)
+    def _get_input_wallets(self, seed, start, end) -> List[InputWallet]:
+        wallets = []
+        for i in range(start, end):
+            in_priv, in_pub, in_addr = self.get_priv_pub_addr(seed, i)
+            balance = int(self.etherscan.balance(in_addr))
+            wallets.append(InputWallet(in_priv, in_pub, in_addr, balance))
+        return wallets
+
+    def send_transactions(self, seed, outs_percent, start, end) -> List[str]:
+        if isinstance(outs_percent, dict):
+            outs_percent = [(key, value) for (key, value) in outs_percent.items()]
+        input_wallets = self._get_input_wallets(seed, start, end)
+        tx_intents = self._transaction_distribution.get_transaction_intents(input_wallets, outs_percent)
+        print(f"send_transactions\n: {tx_intents}")
         gas_price = self.etherscan.gas_price
         estimated_gas = 21000
         txs = []
-        for out_addr, proportion in outs_percent.items():
-            nonce = self.etherscan.get_nonce(in_addr)
+        for intent in tx_intents:
+            intent: TransactionIntent = intent
+            in_wallet = intent.in_wallet
+            nonce = self.etherscan.get_nonce(in_wallet.address)
             tx = transactions.Transaction(nonce=nonce,
-                                          to=out_addr[2:],
-                                          value=self.float_to_decimal(0.1),
+                                          to=intent.out_address[2:],
+                                          value=intent.amount,
                                           gasprice=gas_price,
                                           startgas=estimated_gas,
                                           data=b"")
-            signed = tx.sign(in_priv, self.etherscan.chain_id)
+            signed = tx.sign(in_wallet.priv, self.etherscan.chain_id)
             unencoded_tx = rlp.encode(signed)
             signed_tx = "0x" + unencoded_tx.hex()
             tx_hash = self.etherscan.send_transaction(signed_tx)

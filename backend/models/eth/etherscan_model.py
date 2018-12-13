@@ -1,8 +1,8 @@
 from typing import Optional
 
-from models.multitransactions import MultiTransactionClass
 import requests
 
+from models.multitransactions import MultiTransactionClass
 from models.network_type import NetworkType
 
 

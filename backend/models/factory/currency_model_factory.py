@@ -2,7 +2,7 @@ from typing import Dict
 
 from models.btc_model import BitcoinClass
 from models.currency_model import CurrencyModel
-from models.eth_model import EthereumClass
+from models.eth.eth_model import EthereumClass
 from models.utils.singleton import Singleton
 
 

@@ -127,14 +127,12 @@ async def set_outs(request: BaseRequest):
     password = request.all_data.get("password")
     outs = request.all_data.get("outs")
     config = load_config()
-    network_type = load_network_type()
     masterwallet = config.get("Master", None)
     if masterwallet is None or not masterwallet.has_encrypted_seed():
         return {"error": "No master wallet", "result": None}
     masterseed = decrypt_seed(masterwallet.encrypted_seed, password)
     if masterseed is None:
         return {"error": "Problems with master wallet", "result": None}
-    factory = CurrencyModelFactory()
     btc_model = BitcoinClass()
     _priv, _pub, _addr = btc_model.get_priv_pub_addr(masterseed, 0)
     signature = btc_model.sign_data(json.dumps(outs), _priv)
@@ -148,12 +146,12 @@ async def send_transactions(request: Request):
     wallet_id = request.match_info.get('wallet', None)
     currency = request.match_info.get('currency', None)
     password = request.all_data.get("password", None)
-    start = request.match_info.get("start", None)
-    end = request.match_info.get("end", None)
+    start = request.all_data.get("start", None)
+    end = request.all_data.get("end", None)
 
-    if not start:
+    if start is None:
         return {"error": "No start field", "result": None}
-    if not end:
+    if end is None:
         return {"error": "No end field", "result": None}
 
     config = load_config()
