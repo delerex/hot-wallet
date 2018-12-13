@@ -27,7 +27,6 @@ class EtherScan:
         return r
 
     def process_transaction(self, transaction):
-        print(transaction)
         mt = MultiTransactionClass("ETH", transaction["hash"])
         mt.settime(transaction["timeStamp"])
 
@@ -40,7 +39,6 @@ class EtherScan:
     def transactions(self, wallet_id, skip=0, limit=50):
         res = []
         r = self.get_transactions(wallet_id, skip, limit)
-        print(f"transactions response: {r}")
         for ct in r["result"]:
             if int(ct["isError"]) == 0:
                 t = self.process_transaction(ct)
@@ -83,11 +81,12 @@ class EtherScan:
     def send_transaction(self, transaction) -> Optional[str]:
         params = {"module": "proxy", "action": "eth_sendRawTransaction", "hex": transaction}
         r = requests.get(self._endpoint, params)
-        txs = r.json()
-        if "status" in txs and txs["status"] == "0":
-            print(f"send_transaction response: {txs}")
+        response = r.json()
+        # print(f"send_transaction response: {response}")
+        if "error" in response:
+            print(f"send_transaction error: {response}")
             return None
-        return txs["result"]
+        return response["result"]
 
     def get_nonce(self, wallet_id) -> int:
         outcount = 0
