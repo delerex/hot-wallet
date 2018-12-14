@@ -3,6 +3,7 @@ from typing import List
 from bitcoin import *
 
 from models.btc.blockcypher import Blockcypher
+from models.btc.btc_service import BtcService
 from models.btc.input_transaction import InputTransaction
 from models.currency_model import CurrencyModel
 from models.network_type import NetworkType
@@ -22,7 +23,7 @@ class BitcoinClass(CurrencyModel):
 
     def __init__(self, network_type: str):
         self._decimals = 10
-        self._service = Blockcypher(network_type=network_type)
+        self._service: BtcService = Blockcypher(network_type=network_type)
         if network_type == NetworkType.MAIN:
             self._network_vbytes = MAINNET_PRIVATE
             self._magic_bytes = 0
@@ -67,7 +68,7 @@ class BitcoinClass(CurrencyModel):
         input_transactions = []
         for i in range(start, end):
             in_priv, in_pub, in_addr = self.get_priv_pub_addr(seed, i)
-            txs = self._service.transactions(in_addr)
+            txs = self._service.get_input_transactions(in_addr)
             for tx in txs:
                 if not tx.is_spent:
                     tx.priv_key = in_priv

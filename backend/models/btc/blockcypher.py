@@ -2,11 +2,12 @@ from typing import List
 
 import requests
 
+from models.btc.btc_service import BtcService
 from models.btc.input_transaction import InputTransaction
 from models.network_type import NetworkType
 
 
-class Blockcypher:
+class Blockcypher(BtcService):
 
     def __init__(self, network_type: str):
         self._network_type = network_type
@@ -54,19 +55,18 @@ class Blockcypher:
         data = resp.json()
         return data
 
-    def get_fee_rate(self):
+    def get_fee_rate(self) -> float:
         blockchain = self.get_blockchain()
         fee_rate = blockchain["medium_fee_per_kb"] / 1000
-        print(f"type of fee_rate is {type(fee_rate)}, fee_rate is {fee_rate}")
         return fee_rate
 
-    def get_balance(self, addr):
+    def get_balance(self, addr) -> int:
         resp = requests.get(f"{self._endpoint}addrs/{addr}/balance",
                             allow_redirects=True)
         data = resp.json()
         return data["balance"]
 
-    def transactions(self, addr) -> List[InputTransaction]:
+    def get_input_transactions(self, addr) -> List[InputTransaction]:
         txs = self.get_transactions(addr)
         return [self.process_transaction(addr, tx) for tx in txs if "spent" in tx]
 
