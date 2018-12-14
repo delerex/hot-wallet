@@ -128,13 +128,14 @@ async def set_outs(request: BaseRequest):
     password = request.all_data.get("password")
     outs = request.all_data.get("outs")
     config = load_config()
+    network_type = load_network_type()
     masterwallet = config.get("Master", None)
     if masterwallet is None or not masterwallet.has_encrypted_seed():
         return {"error": "No master wallet", "result": None}
     masterseed = decrypt_seed(masterwallet.encrypted_seed, password)
     if masterseed is None:
         return {"error": "Problems with master wallet", "result": None}
-    btc_model = BitcoinClass()
+    btc_model = BitcoinClass(network_type)
     _priv, _pub, _addr = btc_model.get_priv_pub_addr(masterseed, 0)
     signature = btc_model.sign_data(json.dumps(outs), _priv)
     verify_result = btc_model.verify_data(json.dumps(outs), signature, _pub)
