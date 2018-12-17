@@ -7,6 +7,13 @@ const API = {
     networkType: "network/type/",
 };
 
+function range(start, end) {
+    let foo = [];
+    for (let i = start; i < end; i++) {
+        foo.push(i);
+    }
+    return foo;
+}
 
 function GetAPI(endpoint, data, callback) {
     var xhr = new XMLHttpRequest();
@@ -165,7 +172,9 @@ function APIPutNetworkType(network_type, callback = null) {
 }
 
 function APISendTransactions(wallet, currency, start, end, password, callback = null) {
-    PostAPI(API.wallets + wallet + "/" + currency + "/transactions/", {password: password, start: start, end: end}, function (response) {
+    let n_array = range(start, end);
+    PostAPI(API.wallets + wallet + "/" + currency + "/transactions/",
+        {password: password, n_array: n_array}, function (response) {
         if (callback) {
             callback(response);
         }

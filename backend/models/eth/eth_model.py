@@ -62,9 +62,9 @@ class EthereumClass(CurrencyModel):
         txs = self.etherscan.get_transactions(addr)
         return len(txs)
 
-    def _get_input_wallets(self, seed, start, end) -> List[InputWallet]:
+    def _get_input_wallets(self, seed, n_array) -> List[InputWallet]:
         wallets = []
-        for i in range(start, end):
+        for i in n_array:
             in_priv, in_pub, in_addr = self.get_priv_pub_addr(seed, i)
             balance = int(self.etherscan.balance(in_addr))
             wallets.append(InputWallet(in_priv, in_pub, in_addr, balance))
@@ -77,10 +77,10 @@ class EthereumClass(CurrencyModel):
                 nonce_dict[w.address] = self.etherscan.get_nonce(w.address)
         return nonce_dict
 
-    def send_transactions(self, seed, outs_percent, start, end) -> List[str]:
+    def send_transactions(self, seed, outs_percent, n_array) -> List[str]:
         if isinstance(outs_percent, dict):
             outs_percent = [(key, value) for (key, value) in outs_percent.items()]
-        input_wallets = self._get_input_wallets(seed, start, end)
+        input_wallets = self._get_input_wallets(seed, n_array)
         tx_intents = self._transaction_distribution.get_transaction_intents(input_wallets, outs_percent)
         # print(f"send_transactions\n: {tx_intents}")
         gas_price = self.etherscan.gas_price

@@ -150,11 +150,14 @@ async def send_transactions(request: Request):
     password = request.all_data.get("password", None)
     start = request.all_data.get("start", None)
     end = request.all_data.get("end", None)
+    n_array = request.all_data.get("n_array", None)
 
-    if start is None:
-        return {"error": "No start field", "result": None}
-    if end is None:
-        return {"error": "No end field", "result": None}
+    if n_array is None:
+        if start is None:
+            return {"error": "No n_array and no start fields", "result": None}
+        if end is None:
+            return {"error": "No n_array and no end fields", "result": None}
+        n_array = range(start, end)
 
     config = load_config()
 
@@ -191,7 +194,7 @@ async def send_transactions(request: Request):
 
     print(f"currency_outs: {currency_outs}")
     currency_outs: dict = wallet_outs[currency]["outs"]
-    currency_model.send_transactions(walletseed, currency_outs, start, end)
+    currency_model.send_transactions(walletseed, currency_outs, n_array)
 
     return {"error": None, "result": True}
 

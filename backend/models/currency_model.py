@@ -48,5 +48,5 @@ class CurrencyModel(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def send_transactions(self, masterseed, outs, start, end):
+    def send_transactions(self, masterseed, outs, n_array):
         pass

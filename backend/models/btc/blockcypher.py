@@ -64,6 +64,7 @@ class Blockcypher(BtcService):
         resp = requests.get(f"{self._endpoint}addrs/{addr}/balance",
                             allow_redirects=True)
         data = resp.json()
+        print(f"get_balance: {data}")
         return data["balance"]
 
     def get_input_transactions(self, addr) -> List[InputTransaction]:

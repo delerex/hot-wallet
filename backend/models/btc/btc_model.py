@@ -64,9 +64,9 @@ class BitcoinClass(CurrencyModel):
     def get_nonce(self, addr) -> str:
         raise NotImplementedError()
 
-    def _get_input_transactions(self, seed, start, end) -> List[InputTransaction]:
+    def _get_input_transactions(self, seed, n_array) -> List[InputTransaction]:
         input_transactions = []
-        for i in range(start, end):
+        for i in n_array:
             in_priv, in_pub, in_addr = self.get_priv_pub_addr(seed, i)
             txs = self._service.get_input_transactions(in_addr)
             for tx in txs:
@@ -75,9 +75,9 @@ class BitcoinClass(CurrencyModel):
                     input_transactions.append(tx)
         return input_transactions
 
-    def send_transactions(self, seed, outs_percent, start, end):
+    def send_transactions(self, seed, outs_percent, n_array):
 
-        input_transactions = self._get_input_transactions(seed, start, end)
+        input_transactions = self._get_input_transactions(seed, n_array)
         balance = 0
         for tx in input_transactions:
             if not tx.is_spent:
