@@ -54,6 +54,7 @@ def generate_encrypted_seed(mnemonic, password, network_type):
     btcxpub, ethxpub = seed_to_xpub_keys(seed, network_type)
     if not isinstance(base58_encrypted_seed, str):
         base58_encrypted_seed = base58_encrypted_seed.decode("ascii")
+    # TODO do not return btcxpub and ethxpub - create their from currency model
     return base58_encrypted_seed, btcxpub, ethxpub
 
 
@@ -81,7 +82,8 @@ def decrypt_seed(seed, password=None):
     return decrypted_seed[0:64]
 
 
-def seed_to_xpub_keys(seed, network_type):
+# TODO deprecated - use currency model for generating xpub keys
+def  seed_to_xpub_keys(seed, network_type):
     if network_type == NetworkType.MAIN:
         vbytes = MAINNET_PRIVATE
     else:

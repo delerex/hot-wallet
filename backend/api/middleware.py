@@ -6,6 +6,8 @@ from aiohttp import web
 from aiohttp.web_request import Request
 from aiohttp.web_response import Response
 
+from models.errors import RequestError
+
 RESPONSE_HEADERS = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -25,6 +27,11 @@ async def error_handling_middleware(app, handler):
             if isinstance(response, dict):
                 return web.json_response(response, headers=RESPONSE_HEADERS)
             return response
+        except RequestError as ex:
+            return web.json_response({
+                "error": ex.message,
+                "result": None,
+            })
         except web.HTTPException as ex:
             return web.json_response({
                 "error": {

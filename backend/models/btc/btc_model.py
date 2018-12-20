@@ -4,6 +4,8 @@ from bitcoin import *
 
 from models.btc.blockcypher import Blockcypher
 from models.btc.btc_service import BtcService
+from models.btc.btccom_explorer import BtcComExplorer
+from models.btc.chain_so_explorer import ChainSoExplorer
 from models.btc.input_transaction import InputTransaction
 from models.currency_model import CurrencyModel
 from models.network_type import NetworkType
@@ -23,7 +25,9 @@ class BitcoinClass(CurrencyModel):
 
     def __init__(self, network_type: str):
         self._decimals = 10
-        self._service: BtcService = Blockcypher(network_type=network_type)
+        # self._service: BtcService = Blockcypher(network_type=network_type)
+        # self._service: BtcService = BtcComExplorer(network_type=network_type)
+        self._service: BtcService = ChainSoExplorer.from_symbol_and_network_type("BTC", network_type)
         if network_type == NetworkType.MAIN:
             self._network_vbytes = MAINNET_PRIVATE
             self._magic_bytes = 0
