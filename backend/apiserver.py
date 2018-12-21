@@ -66,8 +66,10 @@ async def add_wallet(request: Request):
         wallet_type=request.all_data["wallettype"],
         network_type=network_type,
         encrypted_seed=str(encrypted_seed),
-        btc_xpub=btc_xpub,
-        eth_xpub=eth_xpub
+        xpubs={
+            "BTC": btc_xpub,
+            "ETH": eth_xpub,
+        },
     )
     save_config(cfg.to_dict())
     return {"error": None, "result": True}
@@ -88,9 +90,9 @@ async def get_wallet(request: Request):
     outs = load_outs_file()
     wallet_id = request.match_info.get('wallet', None)
     res = {
-        "BTC": {"pub": config[wallet_id].btc_xpub,
+        "BTC": {"pub": config[wallet_id].xpubs.get("BTC"),
                 "outs": outs.get(wallet_id, {}).get("BTC", {}).get("outs", None)},
-        "ETH": {"pub": config[wallet_id].eth_xpub,
+        "ETH": {"pub": config[wallet_id].xpubs.get("ETH"),
                 "outs": outs.get(wallet_id, {}).get("ETH", {}).get("outs", None)}
     }
     return {"error": None, "result": res}

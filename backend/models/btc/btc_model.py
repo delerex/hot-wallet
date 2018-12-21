@@ -69,7 +69,7 @@ class BitcoinClass(CurrencyModel):
         return priv, pub, addr
 
     def get_xpub(self, wallet: WalletConfig) -> str:
-        return wallet.btc_xpub
+        return wallet.xpubs.get("BTC")
 
     def get_nonce(self, addr) -> str:
         raise NotImplementedError()
