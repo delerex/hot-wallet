@@ -2,9 +2,9 @@
 class CoinDecimals:
 
     _DECIMALS = {
-        "BTC": 10,
+        "BTC": 8,
         "ETH": 18,
-        "LTC": 10
+        "LTC": 8
     }
 
     @classmethod
