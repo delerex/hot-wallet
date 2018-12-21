@@ -5,7 +5,8 @@ from concurrent.futures import ThreadPoolExecutor
 from aiohttp import web
 from aiohttp.web_request import BaseRequest, Request
 
-from api.middleware import error_handling_middleware, cors_middleware, request_and_auth_data_middleware
+from api.middleware import error_handling_middleware, cors_middleware, \
+    request_and_auth_data_middleware
 from models.accounting import API as AccounttingAPI
 from models.btc.btc_model import BitcoinClass
 from models.factory.currency_model_factory import CurrencyModelFactory
@@ -13,7 +14,8 @@ from models.generate import decrypt_seed
 from models.generate import generate_mnemonic, generate_encrypted_seed
 from models.network_type import NetworkType
 from models.wallet_config import WalletConfig
-from repositories.config_repository import load_config, save_config, save_outs_to_file, load_outs_file, \
+from repositories.config_repository import load_config, save_config, save_outs_to_file, \
+    load_outs_file, \
     load_network_type, save_network_type
 
 PORT = 3200
@@ -48,9 +50,17 @@ async def add_wallet(request: Request):
     if wallet_id in config and not config[wallet_id].has_encrypted_seed():
         return {"error": "Seed phrase is already set"}
     network_type = request.all_data["network_type"]
-    encrypted_seed, btc_xpub, eth_xpub = generate_encrypted_seed(request.all_data["mnemonic"],
-                                                                 request.all_data["keypassword"],
-                                                                 network_type)
+    mnemonic = request.all_data["mnemonic"]
+    key_password = request.all_data["keypassword"]
+    encrypted_seed = generate_encrypted_seed(mnemonic,
+                                             key_password)
+    factory = CurrencyModelFactory()
+    btc_model = factory.get_currency_model("BTC", network_type)
+    eth_model = factory.get_currency_model("ETH", network_type)
+
+    decrypted_seed = decrypt_seed(encrypted_seed, key_password)
+    btc_xpub = btc_model.generate_xpub(decrypted_seed)
+    eth_xpub = eth_model.generate_xpub(decrypted_seed)
     cfg = WalletConfig(
         wallet_id=wallet_id,
         wallet_type=request.all_data["wallettype"],
@@ -78,8 +88,10 @@ async def get_wallet(request: Request):
     outs = load_outs_file()
     wallet_id = request.match_info.get('wallet', None)
     res = {
-        "BTC": {"pub": config[wallet_id].btc_xpub, "outs": outs.get(wallet_id, {}).get("BTC", {}).get("outs", None)},
-        "ETH": {"pub": config[wallet_id].eth_xpub, "outs": outs.get(wallet_id, {}).get("ETH", {}).get("outs", None)}
+        "BTC": {"pub": config[wallet_id].btc_xpub,
+                "outs": outs.get(wallet_id, {}).get("BTC", {}).get("outs", None)},
+        "ETH": {"pub": config[wallet_id].eth_xpub,
+                "outs": outs.get(wallet_id, {}).get("ETH", {}).get("outs", None)}
     }
     return {"error": None, "result": res}
 
@@ -175,7 +187,8 @@ async def send_transactions(request: Request):
         return {"error": f"No outs for wallet [{wallet_id}]", "result": None}
     wallet_outs = outs[wallet_id]
     if currency not in wallet_outs:
-        return {"error": f"No outs for wallet [{wallet_id}] and currency [{currency}]", "result": None}
+        return {"error": f"No outs for wallet [{wallet_id}] and currency [{currency}]",
+                "result": None}
     currency_outs: dict = wallet_outs[currency]["outs"]
     factory = CurrencyModelFactory()
 
@@ -224,8 +237,8 @@ routes = [
     ("POST", r"/api/wallets/{wallet}/{currency}/transactions/", send_transactions),
     ("POST", r"/api/login/", login),
     ("GET", r"/api/tokens/requests", withdrawal_requests),
-    ("GET",  r"/api/network/type/", get_network_type),
-    ("PUT",  r"/api/network/type/", put_network_type),
+    ("GET", r"/api/network/type/", get_network_type),
+    ("PUT", r"/api/network/type/", put_network_type),
 ]
 
 

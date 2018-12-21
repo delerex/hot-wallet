@@ -36,6 +36,12 @@ class EthereumClass(CurrencyModel):
         return u.checksum_encode(
             u.sha3(u.encode_int32(x) + u.encode_int32(y))[12:]).lower()
 
+    def generate_xpub(self, root_seed) -> str:
+        mk = bip32_master_key(root_seed)
+        hasha = bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), 60 + 2 ** 31), 2 ** 31)
+        xpub = u.privtopub(hasha)
+        return xpub
+
     def get_addr_from_pub(self, pubkey, address_number):
         pk_addrs = bip32_ckd(bip32_ckd(pubkey, 0), int(address_number))
         keyf = decode_pubkey(bip32_extract_key(pk_addrs))

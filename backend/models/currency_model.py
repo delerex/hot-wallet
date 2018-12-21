@@ -14,6 +14,10 @@ class CurrencyModel(abc.ABC):
         return float(value / 10 ** self.decimals)
 
     @abc.abstractmethod
+    def generate_xpub(self, root_seed) -> str:
+        pass
+
+    @abc.abstractmethod
     def get_priv_pub_addr(self, root_seed, n) -> (str, str, str):
         pass
 

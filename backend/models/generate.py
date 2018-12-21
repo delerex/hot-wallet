@@ -14,22 +14,7 @@ def generate_mnemonic() -> str:
     return mn
 
 
-def generate_keys(mn):
-    m = Mnemonic(language='english')
-    seed = m.to_seed(mn, "")
-    mk = bip32_master_key(seed)
-
-    bitcoin_priv = bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), 0 + 2 ** 31), 2 ** 31)
-    ethereum_priv = bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), 60 + 2 ** 31), 2 ** 31)
-
-    print("Bitcoin PrivKey  : {}".format(bitcoin_priv))
-    print("Ethereum PrivKey : {}".format(ethereum_priv))
-    #    os.environ['CASHIER_PUB_BTC'] = bip32_privtopub( bitcoin_priv)
-    #    os.environ['CASHIER_PUB_ETH'] = bip32_privtopub( ethereum_priv)
-    return bitcoin_priv, ethereum_priv
-
-
-def generate_encrypted_seed(mnemonic, password, network_type):
+def generate_encrypted_seed(mnemonic, password):
     print(f"generate_encrypted_seed: {mnemonic}, {password}")
     m = Mnemonic(language='english')
     if password is None:
@@ -51,11 +36,9 @@ def generate_encrypted_seed(mnemonic, password, network_type):
     print(f"encrypted_seed type: {type(encrypted_seed)}")
     base58_encrypted_seed = base58.b58encode(encrypted_seed)
     print(f"Encrypted root seed: {base58_encrypted_seed}, type: {type(base58_encrypted_seed)}")
-    btcxpub, ethxpub = seed_to_xpub_keys(seed, network_type)
     if not isinstance(base58_encrypted_seed, str):
         base58_encrypted_seed = base58_encrypted_seed.decode("ascii")
-    # TODO do not return btcxpub and ethxpub - create their from currency model
-    return base58_encrypted_seed, btcxpub, ethxpub
+    return base58_encrypted_seed
 
 
 def decrypt_seed(seed, password=None):
@@ -80,21 +63,3 @@ def decrypt_seed(seed, password=None):
         return None
 
     return decrypted_seed[0:64]
-
-
-# TODO deprecated - use currency model for generating xpub keys
-def  seed_to_xpub_keys(seed, network_type):
-    if network_type == NetworkType.MAIN:
-        vbytes = MAINNET_PRIVATE
-    else:
-        vbytes = TESTNET_PRIVATE
-    mk = bip32_master_key(seed, vbytes)
-    mk_ethereum = bip32_master_key(seed)
-
-    bitcoin_priv = bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), 2 ** 31), 2 ** 31)
-    ethereum_priv = bip32_ckd(bip32_ckd(bip32_ckd(mk_ethereum, 44 + 2 ** 31), 60 + 2 ** 31), 2 ** 31)
-
-    bitcoin_pub = bip32_privtopub(bitcoin_priv)
-    ethereum_pub = bip32_privtopub(ethereum_priv)
-
-    return bitcoin_pub, ethereum_pub

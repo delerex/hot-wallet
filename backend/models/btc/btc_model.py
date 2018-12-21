@@ -53,6 +53,12 @@ class BitcoinClass(CurrencyModel):
         # return self.decimal_to_float(int(resp.text))
         return self.decimal_to_float(int(self._service.get_balance(addr)))
 
+    def generate_xpub(self, root_seed) -> str:
+        mk = bip32_master_key(root_seed, self._network_vbytes)
+        xpriv = bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), 2 ** 31), 2 ** 31)
+        xpub = bip32_privtopub(xpriv)
+        return xpub
+
     def get_priv_pub_addr(self, root_seed, n):
         mk = bip32_master_key(root_seed, self._network_vbytes)
         xpriv = bip32_ckd(bip32_ckd(bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), 2 ** 31), 2 ** 31), 0), n)
