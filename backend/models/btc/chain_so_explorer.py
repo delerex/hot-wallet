@@ -4,12 +4,14 @@ from time import sleep
 from typing import Optional, List
 
 import requests
+from pycoin.tx.Spendable import Spendable
 
 from models.btc.btc_service import BtcService
 from models.btc.input_transaction import InputTransaction
 from models.errors import OperationFailed
 from models.network_type import NetworkType
 from models.utils.coin_decimals import CoinDecimals
+from pycoin.serialize import b2h_rev, h2b, h2b_rev
 
 
 class ChainSoExplorer(BtcService):
@@ -39,7 +41,8 @@ class ChainSoExplorer(BtcService):
 
     def __init__(self, network: str):
         if network not in self.SUPPORTED_NETWORKS:
-            raise ValueError(f"Unsupported network [{network}]. Supported: {self.SUPPORTED_NETWORKS}")
+            raise ValueError(
+                f"Unsupported network [{network}]. Supported: {self.SUPPORTED_NETWORKS}")
         self._network = network
         self._endpoint = "https://chain.so/api/v2/"
         self._decimals = CoinDecimals.get_decimals(self.get_symbol())
@@ -64,7 +67,8 @@ class ChainSoExplorer(BtcService):
             sleep(1)
             resp = requests.get(url, allow_redirects=True)
         if resp.status_code != 200:
-            print(f"Error while performing request {url} with status code {resp.status_code}: {resp.text}")
+            print(
+                f"Error while performing request {url} with status code {resp.status_code}: {resp.text}")
             return None
         data = resp.json(parse_float=Decimal)
         if data["status"] == "failed":
@@ -173,6 +177,23 @@ class ChainSoExplorer(BtcService):
         }
         result = self._post_request(f"{self._endpoint}send_tx/{self._network}", data=data)
         print("send_transaction", result)
+
+    def spendables_for_address(self, address):
+        """
+        Return a list of Spendable objects for the
+        given bitcoin address.
+        """
+        spendables = []
+        r = self._request(f"{self._endpoint}get_tx_unspent/{self._network}/{address}")
+
+        print(f"spendables_for_address: {r}")
+        for u in r["data"]['txs']:
+            coin_value = self._decimals_to_int(u['value'])
+            script = h2b(u["script_hex"])
+            previous_hash = h2b_rev(u["txid"])
+            previous_index = u["output_no"]
+            spendables.append(Spendable(coin_value, script, previous_hash, previous_index))
+        return spendables
 
 
 if __name__ == "__main__":
