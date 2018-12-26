@@ -6,69 +6,18 @@ from typing import Optional, List
 import requests
 from pycoin.coins.bitcoin.Spendable import Spendable
 
-from models.btc.btc_service import BtcService
+from models.explorers.btc_service import BtcService
 from models.btc.input_transaction import InputTransaction
 from models.errors import OperationFailed
-from models.network_type import NetworkType
 from models.utils.coin_decimals import CoinDecimals
-from pycoin.encoding.hexbytes import b2h_rev, h2b, h2b_rev
+from pycoin.encoding.hexbytes import h2b, h2b_rev
 
 
-class ChainSoExplorer(BtcService):
-    SUPPORTED_NETWORKS = [
-        "BTC",
-        "LTC",
-        "DASH",
-        "DOGE",
-        "ZEC",
-        "BTCTEST",
-        "DASHTEST",
-        "ZECTEST",
-        "DOGETEST",
-        "LTCTEST",
-    ]
+class BlockExplorerCom(BtcService):
 
-    _SUPPORTED_SYMBOLS = {
-        "BTC": {
-            NetworkType.MAIN: "BTC",
-            NetworkType.TESTNET: "BTCTEST",
-        },
-        "LTC": {
-            NetworkType.MAIN: "LTC",
-            NetworkType.TESTNET: "LTCTEST",
-        },
-        "DASH": {
-            NetworkType.MAIN: "DASH",
-            NetworkType.TESTNET: "DASHTEST",
-        },
-        "DOGE": {
-            NetworkType.MAIN: "DOGE",
-            NetworkType.TESTNET: "DOGETEST",
-        },
-        "ZEC": {
-            NetworkType.MAIN: "ZEC",
-            NetworkType.TESTNET: "ZECTEST",
-        },
-    }
-
-    def __init__(self, network: str):
-        if network not in self.SUPPORTED_NETWORKS:
-            raise ValueError(
-                f"Unsupported network [{network}]. Supported: {self.SUPPORTED_NETWORKS}")
-        self._network = network
-        self._endpoint = "https://chain.so/api/v2/"
-        self._decimals = CoinDecimals.get_decimals(self.get_symbol())
-
-    @classmethod
-    def from_symbol_and_network_type(cls, symbol: str, network_type):
-        network = cls._SUPPORTED_SYMBOLS[symbol][network_type]
-        return cls(network)
-
-    def get_symbol(self) -> str:
-        if "TEST" in self._network:
-            return self._network[:-4]
-        else:
-            return self._network
+    def __init__(self):
+        self._endpoint = "https://blockexplorer.com/api/"
+        self._decimals = CoinDecimals.get_decimals("BCH")
 
     @staticmethod
     def _request(url) -> Optional[dict]:
@@ -80,7 +29,8 @@ class ChainSoExplorer(BtcService):
             resp = requests.get(url, allow_redirects=True)
         if resp.status_code != 200:
             print(
-                f"Error while performing request {url} with status code {resp.status_code}: {resp.text}")
+                f"Error while performing request {url} with status code {resp.status_code}: "
+                f"{resp.text}")
             return None
         data = resp.json(parse_float=Decimal)
         if data["status"] == "failed":
@@ -105,7 +55,7 @@ class ChainSoExplorer(BtcService):
         return result["data"]
 
     def get_balance(self, address) -> Optional[int]:
-        data = self._request(f"{self._endpoint}get_address_balance/{self._network}/{address}")
+        data = self._request(f"{self._endpoint}addr/{address}/balance")
         if data is None:
             return 0
 
@@ -190,10 +140,10 @@ class ChainSoExplorer(BtcService):
         result = self._post_request(f"{self._endpoint}send_tx/{self._network}", data=data)
         print("send_transaction", result)
 
-    def get_spendables_for_address(self, address) -> List[Spendable]:
+    def spendables_for_address(self, address):
         """
         Return a list of Spendable objects for the
-        given bitcoin address. It needs to create transaction via pycoin library.
+        given bitcoin address.
         """
         spendables = []
         r = self._request(f"{self._endpoint}get_tx_unspent/{self._network}/{address}")
@@ -209,6 +159,6 @@ class ChainSoExplorer(BtcService):
 
 
 if __name__ == "__main__":
-    explorer = ChainSoExplorer("BTC")
+    explorer = BlockExplorerCom("BTC")
     print(explorer.get_balance("1GD6mMpZTDVPaCJdwNBSwsei965aaTHV9D"))
     print(explorer.get_fee_rate())

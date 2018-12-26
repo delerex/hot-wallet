@@ -3,7 +3,7 @@ from typing import List
 import requests
 from pycoin.coins.bitcoin.Spendable import Spendable
 
-from models.btc.btc_service import BtcService
+from models.explorers.btc_service import BtcService
 from models.btc.input_transaction import InputTransaction
 from models.network_type import NetworkType
 

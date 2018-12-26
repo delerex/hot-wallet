@@ -6,7 +6,7 @@ import requests
 from pycoin.coins.bitcoin.Spendable import Spendable
 from pycoin.encoding.hexbytes import h2b_rev
 
-from models.btc.btc_service import BtcService
+from models.explorers.btc_service import BtcService
 from models.btc.input_transaction import InputTransaction
 from models.btc.network_factory import NetworkFactory
 from models.network_type import NetworkType

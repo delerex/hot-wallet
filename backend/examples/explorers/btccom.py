@@ -1,8 +1,7 @@
-from pycoin.services import spendables_for_address
-from pycoin.symbols import btc, xtn
+from pycoin.symbols import xtn
 
-from models.btc.btccom_explorer import BtcComExplorer
-from models.btc.chain_so_explorer import ChainSoExplorer
+from models.explorers.btccom_explorer import BtcComExplorer
+from models.explorers.chain_so_explorer import ChainSoExplorer
 from models.network_type import NetworkType
 # b'v\xa9\x14J&\xe0b\xca\x95\xe2\x06\x0e\x9dl\xfc-V\x1dp\x19N\xa4\x1d\x88\xac'
 

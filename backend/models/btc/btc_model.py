@@ -2,10 +2,8 @@ from typing import List
 
 from bitcoin import *
 
-from models.btc.blockcypher import Blockcypher
-from models.btc.btc_service import BtcService
-from models.btc.btccom_explorer import BtcComExplorer
-from models.btc.chain_so_explorer import ChainSoExplorer
+from models.explorers.btc_service import BtcService
+from models.explorers.chain_so_explorer import ChainSoExplorer
 from models.btc.input_transaction import InputTransaction
 from models.currency_model import CurrencyModel
 from models.network_type import NetworkType

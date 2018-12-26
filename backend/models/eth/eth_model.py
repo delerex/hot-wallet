@@ -7,7 +7,7 @@ from ethereum import utils as u, transactions
 
 from models.currency_model import CurrencyModel
 from models.eth.eth_transaction_distribution import EthTransactionDistribution
-from models.eth.etherscan_model import EtherScan
+from models.explorers.etherscan_model import EtherScan
 from models.eth.input_wallet import InputWallet
 from models.eth.transaction_intent import TransactionIntent
 from models.wallet_config import WalletConfig

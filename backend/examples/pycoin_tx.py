@@ -1,17 +1,13 @@
-import io
-
 from mnemonic import Mnemonic
 from pycoin.coins.Tx import Tx
 from pycoin.coins.TxIn import TxIn
 from pycoin.coins.TxOut import TxOut
 from pycoin.coins.tx_utils import create_tx
 from pycoin.networks.bitcoinish import Network
-from pycoin.encoding.hexbytes import b2h
 from pycoin.symbols import btc, xtn
-from pycoin.coins.tx_utils import sign_tx
 from pycoin.ui.key_from_text import key_from_text
 
-from models.btc.chain_so_explorer import ChainSoExplorer
+from models.explorers.chain_so_explorer import ChainSoExplorer
 from models.network_type import NetworkType
 
 

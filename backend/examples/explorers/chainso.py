@@ -1,8 +1,6 @@
-import json
-
 from pycoin.symbols import btc
 
-from models.btc.chain_so_explorer import ChainSoExplorer
+from models.explorers.chain_so_explorer import ChainSoExplorer
 from models.network_type import NetworkType
 
 chain_so = ChainSoExplorer.from_symbol_and_network_type("BTC", network_type=NetworkType.MAIN)
