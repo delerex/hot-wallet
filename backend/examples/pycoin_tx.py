@@ -43,10 +43,10 @@ print(seed)
 
 print()
 
-ltc_network: Network = btc.network
-print(ltc_network)
+btc_network: Network = btc.network
+print(btc_network)
 
-BIP32Node = ltc_network.ui._bip32node_class
+BIP32Node = btc_network.ui._bip32node_class
 # master key from seed
 master_key = BIP32Node.from_master_secret(seed)
 
@@ -102,7 +102,7 @@ address_wallet_address = address_wallet_pub.address()
 
 chain_so = ChainSoExplorer.from_symbol_and_network_type("BTC", network_type=NetworkType.TESTNET)
 # in_txs = chain_so.get_input_transactions(address_wallet_address)
-in_tx = chain_so.spendables_for_address(address_wallet_address)
+in_tx = chain_so.get_spendables_for_address(address_wallet_address)
 print()
 print("Transaction:")
 print(f"in_tx: {in_tx} , type: {type(in_tx)}")
@@ -110,14 +110,14 @@ tx = create_tx(in_tx, ["mwCpnJ1PNULsdhy6cFrGAarcoqjB1r4Va3"], network=btc_testne
 print(tx)
 print()
 # sign tx for address wallet
+if False:
+    sign_tx(tx, [address_wallet.wif(False), address_wallet.wif(True)], network=btc_testnet_network)
+    print("Signed tx:")
+    print()
 
-sign_tx(tx, [address_wallet.wif(False), address_wallet.wif(True)], network=btc_testnet_network)
-print("Signed tx:")
-print()
-
-# send signed tx to blockchain
-s = io.BytesIO()
-tx.stream(s)
-tx_as_hex = b2h(s.getvalue())
-chain_so.send_transaction(tx_as_hex)
+    # send signed tx to blockchain
+    s = io.BytesIO()
+    tx.stream(s)
+    tx_as_hex = b2h(s.getvalue())
+    chain_so.send_transaction(tx_as_hex)
 

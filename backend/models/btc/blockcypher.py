@@ -1,6 +1,7 @@
 from typing import List
 
 import requests
+from pycoin.coins.bitcoin.Spendable import Spendable
 
 from models.btc.btc_service import BtcService
 from models.btc.input_transaction import InputTransaction
@@ -87,3 +88,7 @@ class Blockcypher(BtcService):
                              allow_redirects=True)
         result = resp.json()
         print("send_transaction", resp, result)
+
+    def get_spendables_for_address(self, address) -> List[Spendable]:
+        raise NotImplementedError()
+

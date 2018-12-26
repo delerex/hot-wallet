@@ -190,10 +190,10 @@ class ChainSoExplorer(BtcService):
         result = self._post_request(f"{self._endpoint}send_tx/{self._network}", data=data)
         print("send_transaction", result)
 
-    def spendables_for_address(self, address):
+    def get_spendables_for_address(self, address) -> List[Spendable]:
         """
         Return a list of Spendable objects for the
-        given bitcoin address.
+        given bitcoin address. It needs to create transaction via pycoin library.
         """
         spendables = []
         r = self._request(f"{self._endpoint}get_tx_unspent/{self._network}/{address}")
