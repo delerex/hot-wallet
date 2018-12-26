@@ -4,7 +4,7 @@ from typing import List, Optional
 
 import requests
 from pycoin.coins.bitcoin.Spendable import Spendable
-from pycoin.encoding.hexbytes import h2b, h2b_rev
+from pycoin.encoding.hexbytes import h2b_rev
 
 from models.btc.btc_service import BtcService
 from models.btc.input_transaction import InputTransaction
@@ -64,6 +64,7 @@ class BtcComExplorer(BtcService):
                 f"{resp.text}")
             return None
         data = resp.json(parse_float=Decimal)
+        print(f"data of request: {data}")
         if data["err_no"] != 0:
             error_data = data["err_msg"]
             print(f"Error request to btc.com: {error_data}")
@@ -81,8 +82,21 @@ class BtcComExplorer(BtcService):
     def get_input_transactions(self, address) -> List[InputTransaction]:
         pass
 
+    def get_block(self, block_index) -> dict:
+        print(f"get_block: {block_index}")
+        data = self._request(f"{self._endpoint}block/{block_index}")
+        return data["data"]
+
     def get_fee_rate(self) -> float:
-        pass
+        latest = self.get_block("latest")
+        last_block_index = latest["height"]
+        avg_block_fee = []
+        for i in range(last_block_index - 10, last_block_index):
+            block = self.get_block(i)
+            block_fee = float(block["reward_fees"])
+            avg_fee = block_fee / block["size"]
+            avg_block_fee.append(avg_fee)
+        return sum(avg_block_fee) / float(len(avg_block_fee))
 
     def send_transaction(self, tx_hash):
         pass
