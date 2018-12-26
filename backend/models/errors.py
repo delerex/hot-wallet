@@ -5,6 +5,12 @@ class RequestError(Exception):
         self.code = code
         self.message = message
 
+    def __repr__(self):
+        return f"{self.__class__}[{self.code}]: {self.message}"
+
+    def __str__(self):
+        return self.__repr__()
+
 
 class OperationFailed(RequestError):
 
