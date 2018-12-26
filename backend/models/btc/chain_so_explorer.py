@@ -4,14 +4,14 @@ from time import sleep
 from typing import Optional, List
 
 import requests
-from pycoin.tx.Spendable import Spendable
+from pycoin.coins.bitcoin.Spendable import Spendable
 
 from models.btc.btc_service import BtcService
 from models.btc.input_transaction import InputTransaction
 from models.errors import OperationFailed
 from models.network_type import NetworkType
 from models.utils.coin_decimals import CoinDecimals
-from pycoin.serialize import b2h_rev, h2b, h2b_rev
+from pycoin.encoding.hexbytes import b2h_rev, h2b, h2b_rev
 
 
 class ChainSoExplorer(BtcService):
@@ -36,7 +36,19 @@ class ChainSoExplorer(BtcService):
         "LTC": {
             NetworkType.MAIN: "LTC",
             NetworkType.TESTNET: "LTCTEST",
-        }
+        },
+        "DASH": {
+            NetworkType.MAIN: "DASH",
+            NetworkType.TESTNET: "DASHTEST",
+        },
+        "DOGE": {
+            NetworkType.MAIN: "DOGE",
+            NetworkType.TESTNET: "DOGETEST",
+        },
+        "ZEC": {
+            NetworkType.MAIN: "ZEC",
+            NetworkType.TESTNET: "ZECTEST",
+        },
     }
 
     def __init__(self, network: str):
