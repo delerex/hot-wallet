@@ -11,6 +11,7 @@ from pycoin.key.BIP32Node import BIP32Node
 from pycoin.ui.key_from_text import key_from_text
 
 from models.btc.network_factory import NetworkFactory
+from models.currency_number import CurrencyNumber
 from models.explorers.btc_service import BtcService
 from models.explorers.chain_so_explorer import ChainSoExplorer
 from models.btc.input_transaction import InputTransaction
@@ -39,6 +40,7 @@ class BitcoinClass(CurrencyModel):
         network_factory = NetworkFactory()
         self._network = network_factory.get_network(symbol, network_type)
         self._symbol = symbol
+        self._currency_number = int(CurrencyNumber.get(symbol) - int(2 ** 31))
 
     @property
     def decimals(self):
@@ -55,7 +57,7 @@ class BitcoinClass(CurrencyModel):
     def generate_xpub(self, root_seed) -> str:
         BIP32Node = self._network.ui._bip32node_class
         master_key = BIP32Node.from_master_secret(root_seed)
-        account_key = master_key.subkey_for_path("44p/0p/0p")
+        account_key = master_key.subkey_for_path(f"44p/{self._currency_number}p/0p")
         account_xpub = account_key.as_text()
         return account_xpub
 
@@ -69,7 +71,8 @@ class BitcoinClass(CurrencyModel):
     def _get_priv_key(self, root_seed, n) -> BIP32Node:
         BIP32 = self._network.ui._bip32node_class
         master_key = BIP32.from_master_secret(root_seed)
-        address_key: BIP32Node = master_key.subkey_for_path(f"44p/0p/0p/0/{n}")
+        path = f"44p/{self._currency_number}p/0p/0/{n}"
+        address_key: BIP32Node = master_key.subkey_for_path(path)
         return address_key
 
     def _get_xpub(self, key: BIP32Node) -> str:
