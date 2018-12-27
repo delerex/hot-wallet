@@ -10,7 +10,7 @@ class CurrencyModel(abc.ABC):
     def float_to_decimal(self, value) -> int:
         return int(value * 10 ** self.decimals)
 
-    def decimal_to_float(self, value) -> float:
+    def decimals_to_float(self, value) -> float:
         return float(value / 10 ** self.decimals)
 
     @abc.abstractmethod

@@ -59,7 +59,7 @@ class EthereumClass(CurrencyModel):
         return priv[:-2], pub, addr
 
     def get_balance(self, addr):
-        return self.decimal_to_float(int(self.etherscan.balance(addr)))
+        return self.decimals_to_float(int(self.etherscan.balance(addr)))
 
     def get_xpub(self, wallet: WalletConfig) -> str:
         return wallet.xpubs.get("ETH")

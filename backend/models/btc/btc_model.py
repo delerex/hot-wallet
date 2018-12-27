@@ -1,7 +1,12 @@
 from typing import List
 
 from bitcoin import *
+from pycoin.encoding.bytes32 import to_bytes_32
+from pycoin.encoding.hexbytes import b2h
+from pycoin.key.BIP32Node import BIP32Node
+from pycoin.ui.key_from_text import key_from_text
 
+from models.btc.network_factory import NetworkFactory
 from models.explorers.btc_service import BtcService
 from models.explorers.chain_so_explorer import ChainSoExplorer
 from models.btc.input_transaction import InputTransaction
@@ -11,7 +16,6 @@ from models.wallet_config import WalletConfig
 
 
 class BitcoinClass(CurrencyModel):
-
     headers = {
         "Host": "blockchain.info",
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -21,11 +25,14 @@ class BitcoinClass(CurrencyModel):
         "Connection": "keep-alive"
     }
 
-    def __init__(self, network_type: str):
+    def __init__(self, network_type: str, symbol: str = "BTC"):
         self._decimals = 10
         # self._service: BtcService = Blockcypher(network_type=network_type)
         # self._service: BtcService = BtcComExplorer(network_type=network_type)
-        self._service: BtcService = ChainSoExplorer.from_symbol_and_network_type("BTC", network_type)
+        self._service: BtcService = ChainSoExplorer.from_symbol_and_network_type("BTC",
+                                                                                 network_type)
+        network_factory = NetworkFactory()
+        self._network = network_factory.get_network(symbol, network_type)
         if network_type == NetworkType.MAIN:
             self._network_vbytes = MAINNET_PRIVATE
             self._magic_bytes = 0
@@ -37,34 +44,32 @@ class BitcoinClass(CurrencyModel):
     def decimals(self):
         return self._decimals
 
-    def get_addr_from_pub(self, pubkey, address_number):
-        pk_addrs = bip32_ckd(bip32_ckd(pubkey, 0), address_number)
-        addr = pubkey_to_address(bip32_extract_key(pk_addrs), self._magic_bytes)
-        return addr
+    def get_addr_from_pub(self, account_xpub, address_number):
+        account_key = key_from_text(account_xpub, networks=[self._network])
+        address_key = account_key.subkey_for_path(f"0/{address_number}")
+        return address_key.address()
 
     def pub_to_addr(self, pubkey):
         return pubkey_to_address(bip32_extract_key(pubkey), self._magic_bytes)
 
     def get_balance(self, addr):
-        # resp = requests.get(f"https://blockchain.info/q/addressbalance/{addr}",
-        #                     allow_redirects=True)
-        # return self.decimal_to_float(int(resp.text))
-        return self.decimal_to_float(int(self._service.get_balance(addr)))
+        return self.decimals_to_float(int(self._service.get_balance(addr)))
 
     def generate_xpub(self, root_seed) -> str:
-        mk = bip32_master_key(root_seed, self._network_vbytes)
-        xpriv = bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), 2 ** 31), 2 ** 31)
-        xpub = bip32_privtopub(xpriv)
-        return xpub
+        BIP32Node = self._network.ui._bip32node_class
+        master_key = BIP32Node.from_master_secret(root_seed)
+        account_key = master_key.subkey_for_path("44p/0p/0p")
+        account_xpub = account_key.as_text()
+        return account_xpub
 
     def get_priv_pub_addr(self, root_seed, n):
-        mk = bip32_master_key(root_seed, self._network_vbytes)
-        xpriv = bip32_ckd(bip32_ckd(bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), 2 ** 31), 2 ** 31), 0), n)
-        priv = bip32_extract_key(xpriv)
-        pub = bip32_privtopub(xpriv)
-
-        addr = privkey_to_address(priv, self._magic_bytes)
-        return priv, pub, addr
+        BIP32 = self._network.ui._bip32node_class
+        master_key = BIP32.from_master_secret(root_seed)
+        address_key: BIP32Node = master_key.subkey_for_path(f"44p/0p/0p/0/{n}")
+        xpub = address_key.hwif(as_private=False)
+        priv = b2h(to_bytes_32(address_key.secret_exponent()))
+        addr = address_key.address(use_uncompressed=False)
+        return priv, xpub, addr
 
     def get_xpub(self, wallet: WalletConfig) -> str:
         return wallet.xpubs.get("BTC")

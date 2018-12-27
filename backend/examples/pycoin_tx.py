@@ -3,10 +3,12 @@ from pycoin.coins.Tx import Tx
 from pycoin.coins.TxIn import TxIn
 from pycoin.coins.TxOut import TxOut
 from pycoin.coins.tx_utils import create_tx
+from pycoin.key import Key
 from pycoin.networks.bitcoinish import Network
 from pycoin.symbols import btc, xtn
 from pycoin.ui.key_from_text import key_from_text
 
+from models.btc.btc_model import BitcoinClass
 from models.explorers.chain_so_explorer import ChainSoExplorer
 from models.network_type import NetworkType
 
@@ -77,15 +79,26 @@ account_xpub = account_key.as_text()
 
 # get xpriv of account wallet
 print(account_key.as_text(as_private=True))
+
 # get account address
 print(account_key.address())
+
 # create address wallet
-address_wallet = account_key.subkey_for_path("0/0")
+address_wallet: Key = account_key.subkey_for_path("0/0")
+
 # get address of address wallet
 print()
 print("Address wallet:")
 print(address_wallet)
 print(address_wallet.address())
+print("Priv", address_wallet.wif())
+
+print()
+print("From old methods: ")
+btc_model = BitcoinClass(network_type=NetworkType.TESTNET, symbol="BTC")
+priv, pub, addr = btc_model.get_priv_pub_addr(seed, 0)
+print(priv, pub, addr)
+
 # create address wallet from account xpub
 print()
 print("Generate address wallet from account xpub:")
