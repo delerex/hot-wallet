@@ -80,7 +80,24 @@ class BtcComExplorer(BtcService):
         return data["data"]["balance"]
 
     def get_input_transactions(self, address) -> List[InputTransaction]:
-        pass
+        unspent = self.get_unspent_tx(address)
+        input_transactions = []
+        r = self._request(f"{self._endpoint}address/{address}/unspent")
+
+        print(f"spendables_for_address: {r}")
+
+        for utx in unspent:
+            coin_value = utx["value"]
+            tx_hash = utx["tx_hash"]
+            tx_output_n = utx["tx_output_n"]
+            input_transactions.append(InputTransaction(
+                address=address,
+                value=coin_value,
+                output=f"{tx_hash}:{tx_output_n}",
+                block_height=None,
+                is_spent=False,
+            ))
+        return input_transactions
 
     def get_block(self, block_index) -> dict:
         print(f"get_block: {block_index}")

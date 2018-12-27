@@ -24,6 +24,12 @@ chain_so = ChainSoExplorer.from_symbol_and_network_type("BTC", NetworkType.MAIN)
 spendables2 = chain_so.get_spendables_for_address(address)
 print(f"spendables: {spendables2}")
 
+input_transactions = explorer.get_input_transactions(address)
+in_txs = [tx.to_dict() for tx in input_transactions]
+print()
+print(f"input_transactions: {in_txs}")
+print()
+
 fee_rate = explorer.get_fee_rate()
 print(f"fee_rate: {fee_rate}")
 fee_rate2 = chain_so.get_fee_rate()
