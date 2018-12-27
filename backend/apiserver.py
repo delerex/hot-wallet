@@ -57,10 +57,14 @@ async def add_wallet(request: Request):
     factory = CurrencyModelFactory()
     btc_model = factory.get_currency_model("BTC", network_type)
     eth_model = factory.get_currency_model("ETH", network_type)
+    bch_model = factory.get_currency_model("BCH", network_type)
+    ltc_model = factory.get_currency_model("LTC", network_type)
 
     decrypted_seed = decrypt_seed(encrypted_seed, key_password)
     btc_xpub = btc_model.generate_xpub(decrypted_seed)
     eth_xpub = eth_model.generate_xpub(decrypted_seed)
+    bch_xpub = bch_model.generate_xpub(decrypted_seed)
+    ltc_xpub = ltc_model.generate_xpub(decrypted_seed)
     cfg = WalletConfig(
         wallet_id=wallet_id,
         wallet_type=request.all_data["wallettype"],
@@ -69,6 +73,8 @@ async def add_wallet(request: Request):
         xpubs={
             "BTC": btc_xpub,
             "ETH": eth_xpub,
+            "BCH": bch_xpub,
+            "LTC": ltc_xpub,
         },
     )
     save_config(cfg.to_dict())
@@ -93,7 +99,11 @@ async def get_wallet(request: Request):
         "BTC": {"pub": config[wallet_id].xpubs.get("BTC"),
                 "outs": outs.get(wallet_id, {}).get("BTC", {}).get("outs", None)},
         "ETH": {"pub": config[wallet_id].xpubs.get("ETH"),
-                "outs": outs.get(wallet_id, {}).get("ETH", {}).get("outs", None)}
+                "outs": outs.get(wallet_id, {}).get("ETH", {}).get("outs", None)},
+        "LTC": {"pub": config[wallet_id].xpubs.get("LTC"),
+                "outs": outs.get(wallet_id, {}).get("LTC", {}).get("outs", None)},
+        "BCH": {"pub": config[wallet_id].xpubs.get("BCH"),
+                "outs": outs.get(wallet_id, {}).get("BCH", {}).get("outs", None)},
     }
     return {"error": None, "result": res}
 
