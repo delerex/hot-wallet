@@ -29,12 +29,13 @@ class BitcoinClass(CurrencyModel):
         "Connection": "keep-alive"
     }
 
-    def __init__(self, network_type: str, symbol: str = "BTC"):
+    def __init__(self, network_type: str, symbol: str = "BTC", explorer: BtcService = None):
         self._decimals = 10
         # self._service: BtcService = Blockcypher(network_type=network_type)
         # self._service: BtcService = BtcComExplorer(network_type=network_type)
-        self._service: BtcService = ChainSoExplorer.from_symbol_and_network_type("BTC",
-                                                                                 network_type)
+        if explorer is None:
+            explorer = ChainSoExplorer.from_symbol_and_network_type("BTC", network_type)
+        self._service = explorer
         network_factory = NetworkFactory()
         self._network = network_factory.get_network(symbol, network_type)
         if network_type == NetworkType.MAIN:
