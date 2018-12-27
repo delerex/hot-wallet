@@ -38,12 +38,7 @@ class BitcoinClass(CurrencyModel):
         self._service = explorer
         network_factory = NetworkFactory()
         self._network = network_factory.get_network(symbol, network_type)
-        if network_type == NetworkType.MAIN:
-            self._network_vbytes = MAINNET_PRIVATE
-            self._magic_bytes = 0
-        else:
-            self._network_vbytes = TESTNET_PRIVATE
-            self._magic_bytes = int("6F", 16)
+        self._symbol = symbol
 
     @property
     def decimals(self):
@@ -53,9 +48,6 @@ class BitcoinClass(CurrencyModel):
         account_key = key_from_text(account_xpub, networks=[self._network])
         address_key = account_key.subkey_for_path(f"0/{address_number}")
         return address_key.address()
-
-    def pub_to_addr(self, pubkey):
-        return pubkey_to_address(bip32_extract_key(pubkey), self._magic_bytes)
 
     def get_balance(self, addr):
         return self.decimals_to_float(int(self._service.get_balance(addr)))
@@ -90,7 +82,7 @@ class BitcoinClass(CurrencyModel):
         return key.address(use_uncompressed=False)
 
     def get_xpub(self, wallet: WalletConfig) -> str:
-        return wallet.xpubs.get("BTC")
+        return wallet.xpubs.get(self._symbol)
 
     def get_nonce(self, addr) -> str:
         raise NotImplementedError()
