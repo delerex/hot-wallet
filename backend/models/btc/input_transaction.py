@@ -1,7 +1,9 @@
+from pycoin.key.BIP32Node import BIP32Node
+
 
 class InputTransaction:
 
-    def __init__(self, address, value, output, block_height, is_spent, priv_key=None):
+    def __init__(self, address, value, output, block_height, is_spent, priv_key: BIP32Node = None):
         # {
         #     "address": "12vimHE11zzkYGTxtmws1kJiW5MV3FhBMh",
         #     "value": 1391504,

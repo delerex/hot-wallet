@@ -1,8 +1,12 @@
-from typing import List
+import io
+from typing import List, Tuple
 
 from bitcoin import *
-from pycoin.encoding.bytes32 import to_bytes_32
-from pycoin.encoding.hexbytes import b2h
+from pycoin.coins.bitcoin.Spendable import Spendable
+from pycoin.coins.tx_utils import create_tx, sign_tx
+from pycoin.encoding.bytes32 import to_bytes_32, from_bytes_32
+from pycoin.encoding.hexbytes import b2h, h2b, h2b_rev
+from pycoin.key import Key
 from pycoin.key.BIP32Node import BIP32Node
 from pycoin.ui.key_from_text import key_from_text
 
@@ -63,13 +67,26 @@ class BitcoinClass(CurrencyModel):
         return account_xpub
 
     def get_priv_pub_addr(self, root_seed, n):
+        address_key: BIP32Node = self._get_priv_key(root_seed, n)
+        xpub = self._get_xpub(address_key)
+        priv = self._get_priv(address_key)
+        addr = self._get_address(address_key)
+        return priv, xpub, addr
+
+    def _get_priv_key(self, root_seed, n) -> BIP32Node:
         BIP32 = self._network.ui._bip32node_class
         master_key = BIP32.from_master_secret(root_seed)
         address_key: BIP32Node = master_key.subkey_for_path(f"44p/0p/0p/0/{n}")
-        xpub = address_key.hwif(as_private=False)
-        priv = b2h(to_bytes_32(address_key.secret_exponent()))
-        addr = address_key.address(use_uncompressed=False)
-        return priv, xpub, addr
+        return address_key
+
+    def _get_xpub(self, key: BIP32Node) -> str:
+        return key.hwif(as_private=False)
+
+    def _get_priv(self, key: BIP32Node) -> str:
+        return b2h(to_bytes_32(key.secret_exponent()))
+
+    def _get_address(self, key: BIP32Node) -> str:
+        return key.address(use_uncompressed=False)
 
     def get_xpub(self, wallet: WalletConfig) -> str:
         return wallet.xpubs.get("BTC")
@@ -80,13 +97,28 @@ class BitcoinClass(CurrencyModel):
     def _get_input_transactions(self, seed, start, end) -> List[InputTransaction]:
         input_transactions = []
         for i in range(start, end):
-            in_priv, in_pub, in_addr = self.get_priv_pub_addr(seed, i)
+            priv_key = self._get_priv_key(seed, i)
+            in_addr = self._get_address(priv_key)
             txs = self._service.get_input_transactions(in_addr)
             for tx in txs:
                 if not tx.is_spent:
-                    tx.priv_key = in_priv
+                    tx.priv_key = priv_key
                     input_transactions.append(tx)
         return input_transactions
+
+    def _input_tx_to_spendable(self, tx: InputTransaction) -> Spendable:
+        outs = tx.output.split(":")
+        tx_hash = h2b_rev(outs[0])
+        output_n = int(outs[1])
+        return Spendable(
+            coin_value=tx.value,
+            script=self._network.ui.script_for_address(tx.address),
+            tx_hash=tx_hash,
+            tx_out_index=output_n
+        )
+
+    def _input_txs_to_spendable(self, txs: List[InputTransaction]) -> List[Spendable]:
+        return [self._input_tx_to_spendable(tx) for tx in txs]
 
     def send_transactions(self, seed, outs_percent, start, end):
 
@@ -97,12 +129,13 @@ class BitcoinClass(CurrencyModel):
                 balance += tx.value
         print(f"balance: {balance}")
         if balance > 0:
-            ins = [tx.to_dict() for tx in input_transactions]
-            priv_keys = [tx.priv_key for tx in input_transactions]
             outs = [{"value": int(balance * percent / 100), "address": addr}
                     for (addr, percent) in outs_percent.items()]
 
-            tx = self._generate_transaction(ins, outs, priv_keys)
+            spendables = self._input_txs_to_spendable(input_transactions)
+            payables = [(item["address"], item["value"]) for item in outs]
+
+            tx = self._generate_transaction(spendables, input_transactions, payables)
 
             fee_rate = self._service.get_fee_rate()
 
@@ -114,20 +147,29 @@ class BitcoinClass(CurrencyModel):
 
             print(f"outs: {outs}")
 
-            tx = self._generate_transaction(ins, outs, priv_keys)
+            payables = [(item["address"], item["value"]) for item in outs]
+            tx = self._generate_transaction(spendables, input_transactions, payables)
 
             print(f"generated tx: {tx}")
 
             self._service.send_transaction(tx)
 
-    @staticmethod
-    def _generate_transaction(ins, outs, priv_keys: list):
-        tx = mktx(ins, outs)
+    def _generate_transaction(self,
+                              spendables: List[Spendable],
+                              ins: List[InputTransaction],
+                              payables: List[Tuple]):
+        tx = create_tx(spendables, payables, network=self._network, fee=0)
 
-        tx_signed = sign(tx, 0, priv_keys[0])
+        priv_key = ins[0].priv_key
+        sign_tx(tx, [priv_key.wif(False), priv_key.wif(True)],
+                network=self._network)
         if len(ins) > 1:
             for q in range(1, len(ins)):
-                tx_signed = sign(tx_signed, q, priv_keys[q])
+                priv_key = ins[q].priv_key
+                sign_tx(tx, [priv_key.wif(False), priv_key.wif(True)],
+                        network=self._network)
 
-        trhash = txhash(tx_signed)
-        return tx_signed
+        s = io.BytesIO()
+        tx.stream(s)
+        tx_as_hex = b2h(s.getvalue())
+        return tx_as_hex

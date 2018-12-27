@@ -1,8 +1,11 @@
+import io
+
 from mnemonic import Mnemonic
 from pycoin.coins.Tx import Tx
 from pycoin.coins.TxIn import TxIn
 from pycoin.coins.TxOut import TxOut
-from pycoin.coins.tx_utils import create_tx
+from pycoin.coins.tx_utils import create_tx, sign_tx
+from pycoin.encoding.hexbytes import b2h
 from pycoin.key import Key
 from pycoin.networks.bitcoinish import Network
 from pycoin.symbols import btc, xtn
@@ -119,14 +122,17 @@ tx = create_tx(in_tx, ["mwCpnJ1PNULsdhy6cFrGAarcoqjB1r4Va3"], network=btc_testne
 print(tx)
 print()
 # sign tx for address wallet
-if False:
-    sign_tx(tx, [address_wallet.wif(False), address_wallet.wif(True)], network=btc_testnet_network)
-    print("Signed tx:")
-    print()
+is_tx = False
 
-    # send signed tx to blockchain
-    s = io.BytesIO()
-    tx.stream(s)
-    tx_as_hex = b2h(s.getvalue())
+sign_tx(tx, [address_wallet.wif(False), address_wallet.wif(True)], network=btc_testnet_network)
+print("Signed tx:")
+print()
+
+# send signed tx to blockchain
+s = io.BytesIO()
+tx.stream(s)
+tx_as_hex = b2h(s.getvalue())
+print(tx_as_hex)
+if is_tx:
     chain_so.send_transaction(tx_as_hex)
 
