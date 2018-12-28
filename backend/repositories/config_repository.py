@@ -1,6 +1,7 @@
 import json
 from typing import Dict
 
+from models.asset.asset import Asset
 from models.asset.asset_config import AssetConfig
 from models.network_type import NetworkType
 from models.wallet_config import WalletConfig
@@ -73,7 +74,9 @@ def load_assets_file():
         return AssetConfig.create_default()
 
 
-def save_assets_to_file(asset_config: AssetConfig):
-    data = asset_config.to_dict()
+def add_asset_to_file(asset: Asset):
+    config = load_assets_file()
+    config.add_asset(asset)
+    data = config.to_dict()
     with open('assets.json', "w") as out_file:
         json.dump(data, out_file)

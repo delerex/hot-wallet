@@ -173,6 +173,23 @@ function APIGetAssets(callback = null) {
     });
 }
 
+function APIPostAsset(symbol, contract_address, coin_index, decimals, password, callback = null) {
+    data = {
+        asset: {
+            symbol: symbol,
+            contract_address: contract_address,
+            coin_index: coin_index,
+            decimals: decimals,
+        },
+        password: password,
+    };
+    PostAPI(API.assets, data, function (response) {
+        if (callback) {
+            callback(response);
+        }
+    });
+}
+
 function APISendTransactions(wallet, currency, start, end, password, callback = null) {
     PostAPI(API.wallets + wallet + "/" + currency + "/transactions/", {password: password, start: start, end: end}, function (response) {
         if (callback) {

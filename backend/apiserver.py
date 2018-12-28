@@ -8,6 +8,7 @@ from aiohttp.web_request import BaseRequest, Request
 from api.middleware import error_handling_middleware, cors_middleware, \
     request_and_auth_data_middleware
 from models.accounting import API as AccounttingAPI
+from models.asset.asset import AssetErc20
 from models.btc.btc_model import BitcoinClass
 from models.factory.currency_model_factory import CurrencyModelFactory
 from models.generate import decrypt_seed
@@ -16,7 +17,7 @@ from models.network_type import NetworkType
 from models.wallet_config import WalletConfig
 from repositories.config_repository import load_config, save_config, save_outs_to_file, \
     load_outs_file, \
-    load_network_type, save_network_type, load_assets_file
+    load_network_type, save_network_type, load_assets_file, add_asset_to_file
 
 PORT = 3200
 
@@ -243,6 +244,36 @@ async def get_assets(request: Request):
     }}
 
 
+async def post_asset(request: Request):
+    asset_data = request.all_data.get("asset", None)
+    password = request.all_data.get("password", None)
+
+    config = load_config()
+    masterwallet = config.get("Master", None)
+    if masterwallet is None or not masterwallet.has_encrypted_seed():
+        return {"error": "No master wallet", "result": None}
+    masterseed = decrypt_seed(masterwallet.encrypted_seed, password)
+    if masterseed is None:
+        return {"error": "Problems with master wallet", "result": None}
+
+    if asset_data is None:
+        return {"error": "No asset object", "result": None}
+    asset_config = load_assets_file()
+    symbol = asset_data["symbol"]
+    if symbol in asset_config.assets:
+        return {"error": f"Asset with symbol {symbol} already exists", "result": None}
+    asset = AssetErc20(
+        symbol=symbol,
+        contract_address=asset_data["contract_address"],
+        coin_index=asset_data["coin_index"],
+        decimals=asset_data["decimals"],
+    )
+
+    add_asset_to_file(asset)
+
+    return {"error": None, "result": True}
+
+
 routes = [
     ("*", r"/api/check/", check),
     ("*", r"/api/", check),
@@ -259,6 +290,7 @@ routes = [
     ("GET", r"/api/network/type/", get_network_type),
     ("PUT", r"/api/network/type/", put_network_type),
     ("GET", r"/api/assets/", get_assets),
+    ("POST", r"/api/assets/", post_asset),
 ]
 
 

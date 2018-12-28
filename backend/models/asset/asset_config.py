@@ -24,6 +24,11 @@ class AssetConfig:
             items.append(data)
         return items
 
+    def add_asset(self, asset: Asset):
+        if asset.symbol in self.assets:
+            raise ValueError(f"{asset.symbol} already in assets")
+        self.assets[asset.symbol] = asset
+
     @classmethod
     def from_dict(cls, data: list):
         result = {}
