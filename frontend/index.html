@@ -86,6 +86,45 @@
                     </div>
                 </div>
                 <hr>
+                <h4>Assets</h4>
+                <div class="col-6">
+                    <button type="submit" class="btn btn-primary" id="buttonAddAsset">Add asset</button>
+                </div>
+                <div id="adding-asset-form" class="d-none">
+                    <div class="col-12">
+                        <form>
+                            <div class="form-row">
+                                <div class="form-group col-2">
+                                    <label for="currentWalletFrom">Symbol</label>
+                                    <input type="text" class="form-control" id="assetSymbol"  placeholder="BTC" value="">
+                                </div>
+                                <div class="form-group col-7">
+                                    <label for="currentWalletFrom">Contract address</label>
+                                    <input type="text" class="form-control" id="assetContractAddress"  placeholder="0xaD7..." value="">
+                                </div>
+                                <div class="form-group col-1">
+                                    <label for="currentWalletFrom">Decimals</label>
+                                    <input type="text" class="form-control" id="assetDecimals"  placeholder="8" value="8">
+                                </div>
+                                <div class="form-group col-2">
+                                    <label for="currentWalletFrom">SLIP-44</label>
+                                    <input type="text" class="form-control" id="assetCurrencyIndex"  placeholder="60" value="60">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-3">
+                                        <label for="passwordInput">Password</label>
+                                        <input type="password" class="form-control" id="masterPasswordInputForAsset" placeholder="Master Key password">
+                                </div>
+
+                                <div class="form-group col-2 mt-auto">
+                                        <button type="submit" class="btn btn-primary" id="buttonSubmitAsset">Submit</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <hr>
                 <h4>Wallets</h4>
                 <div class="col-12">
                     <form>
@@ -622,6 +661,19 @@
                     window.location="index.html"
                     fetchWallets();
                 });
+            });
+
+            $(document).on("click", "#buttonAddAsset", (event)=>{
+                event.preventDefault();
+                if( $("#buttonAddAsset").html() == "Hide" )
+                {
+                    $("#adding-asset-form").addClass("d-none");
+                    $("#buttonAddAsset").html("Add asset");
+
+                }else{
+                    $("#adding-asset-form").removeClass("d-none");
+                    $("#buttonAddAsset").html("Hide");
+                }
             });
 
         </script>
