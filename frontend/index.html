@@ -676,6 +676,20 @@
                 }
             });
 
+            $(document).on("click", "#buttonSubmitAsset", (event) =>{
+                event.preventDefault();
+                let symbol = $("#assetSymbol").val();
+                let contractAddress = $("#assetContractAddress").val();
+                let coinIndex = $("#assetCoinIndex").val();
+                let decimals = $("#assetDecimals").val();
+                let password = $("#masterPasswordInputForAsset").val();
+                APIPostAsset(symbol, contractAddress, coinIndex, decimals, password, function(response){
+                    console.log(response);
+                    fetchAssets();
+                });
+
+            });
+
         </script>
 
 

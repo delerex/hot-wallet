@@ -265,8 +265,8 @@ async def post_asset(request: Request):
     asset = AssetErc20(
         symbol=symbol,
         contract_address=asset_data["contract_address"],
-        coin_index=asset_data["coin_index"],
-        decimals=asset_data["decimals"],
+        coin_index=int(asset_data["coin_index"]),
+        decimals=int(asset_data["decimals"]),
     )
 
     add_asset_to_file(asset)
