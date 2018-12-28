@@ -1,4 +1,4 @@
-class CurrencyNumber:
+class CoinTypes:
     _NUMBERS = {
         "AC": 0x80000033,
         "ACC": 0x800000a1,
@@ -367,3 +367,7 @@ class CurrencyNumber:
     @classmethod
     def get(cls, symbol: str):
         return cls._NUMBERS[symbol]
+
+    @classmethod
+    def get_index(cls, symbol: str):
+        return int(cls.get(symbol) - int(2 ** 31))

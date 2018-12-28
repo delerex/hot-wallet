@@ -5,6 +5,7 @@ const API = {
     wallets: "wallets/",
     mnemonics: "mnemonic/",
     networkType: "network/type/",
+    assets: "assets/",
 };
 
 
@@ -162,6 +163,14 @@ function APIPutNetworkType(network_type, callback = null) {
                 callback(response);
             }
         });
+}
+
+function APIGetAssets(callback = null) {
+    GetAPI(API.assets, {}, function (response) {
+        if (callback) {
+            callback(response);
+        }
+    });
 }
 
 function APISendTransactions(wallet, currency, start, end, password, callback = null) {

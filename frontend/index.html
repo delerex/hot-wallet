@@ -469,8 +469,21 @@
                 APIPutNetworkType(network_type);
             }
 
+            function fetchAssets() {
+                APIGetAssets( function (response) {
+                    if (!response.error && response.result) {
+                        let assets = response.result.assets;
+                        console.log("APIGetAssets", assets);
+                        $("#currentWalletCurrency").empty();
+                        for(let i in assets){
+                            $("#currentWalletCurrency").append((`<option>${assets[i].symbol}</option>`));
+                        }
+                    }
+                })
+            }
 
 
+            fetchAssets();
             fetchMnemonics();
             fetchWallets();
             fetchNetwork();

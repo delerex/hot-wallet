@@ -4,19 +4,17 @@ from typing import List, Tuple
 from bitcoin import *
 from pycoin.coins.bitcoin.Spendable import Spendable
 from pycoin.coins.tx_utils import create_tx, sign_tx
-from pycoin.encoding.bytes32 import to_bytes_32, from_bytes_32
-from pycoin.encoding.hexbytes import b2h, h2b, h2b_rev
-from pycoin.key import Key
+from pycoin.encoding.bytes32 import to_bytes_32
+from pycoin.encoding.hexbytes import b2h, h2b_rev
 from pycoin.key.BIP32Node import BIP32Node
 from pycoin.ui.key_from_text import key_from_text
 
 from models.btc.network_factory import NetworkFactory
-from models.currency_number import CurrencyNumber
+from models.asset.coin_types import CoinTypes
 from models.explorers.btc_service import BtcService
 from models.explorers.chain_so_explorer import ChainSoExplorer
 from models.btc.input_transaction import InputTransaction
 from models.currency_model import CurrencyModel
-from models.network_type import NetworkType
 from models.wallet_config import WalletConfig
 
 
@@ -40,7 +38,7 @@ class BitcoinClass(CurrencyModel):
         network_factory = NetworkFactory()
         self._network = network_factory.get_network(symbol, network_type)
         self._symbol = symbol
-        self._currency_number = int(CurrencyNumber.get(symbol) - int(2 ** 31))
+        self._currency_number = int(CoinTypes.get(symbol) - int(2 ** 31))
 
     @property
     def decimals(self):

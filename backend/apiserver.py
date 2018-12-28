@@ -16,7 +16,7 @@ from models.network_type import NetworkType
 from models.wallet_config import WalletConfig
 from repositories.config_repository import load_config, save_config, save_outs_to_file, \
     load_outs_file, \
-    load_network_type, save_network_type
+    load_network_type, save_network_type, load_assets_file
 
 PORT = 3200
 
@@ -236,6 +236,13 @@ async def put_network_type(request: Request):
     return {"error": None, "result": True}
 
 
+async def get_assets(request: Request):
+    asset_config = load_assets_file()
+    return {"error": None, "result": {
+        "assets": asset_config.to_dict()
+    }}
+
+
 routes = [
     ("*", r"/api/check/", check),
     ("*", r"/api/", check),
@@ -251,6 +258,7 @@ routes = [
     ("GET", r"/api/tokens/requests", withdrawal_requests),
     ("GET", r"/api/network/type/", get_network_type),
     ("PUT", r"/api/network/type/", put_network_type),
+    ("GET", r"/api/assets/", get_assets),
 ]
 
 
