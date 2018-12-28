@@ -8,7 +8,7 @@ from aiohttp.web_request import BaseRequest, Request
 from api.middleware import error_handling_middleware, cors_middleware, \
     request_and_auth_data_middleware
 from models.accounting import API as AccounttingAPI
-from models.asset.asset import AssetErc20
+from models.asset.asset import AssetErc20, Asset
 from models.btc.btc_model import BitcoinClass
 from models.factory.currency_model_factory import CurrencyModelFactory
 from models.generate import decrypt_seed
@@ -55,31 +55,28 @@ async def add_wallet(request: Request):
     key_password = request.all_data["keypassword"]
     encrypted_seed = generate_encrypted_seed(mnemonic,
                                              key_password)
-    factory = CurrencyModelFactory()
-    btc_model = factory.get_currency_model("BTC", network_type)
-    eth_model = factory.get_currency_model("ETH", network_type)
-    bch_model = factory.get_currency_model("BCH", network_type)
-    ltc_model = factory.get_currency_model("LTC", network_type)
-
     decrypted_seed = decrypt_seed(encrypted_seed, key_password)
-    btc_xpub = btc_model.generate_xpub(decrypted_seed)
-    eth_xpub = eth_model.generate_xpub(decrypted_seed)
-    bch_xpub = bch_model.generate_xpub(decrypted_seed)
-    ltc_xpub = ltc_model.generate_xpub(decrypted_seed)
+    assets = load_assets_file()
+    xpubs = {}
+    for asset in assets.assets.values():
+        xpubs[asset.symbol] = generate_xpub(asset, network_type, decrypted_seed)
+
     cfg = WalletConfig(
         wallet_id=wallet_id,
         wallet_type=request.all_data["wallettype"],
         network_type=network_type,
         encrypted_seed=str(encrypted_seed),
-        xpubs={
-            "BTC": btc_xpub,
-            "ETH": eth_xpub,
-            "BCH": bch_xpub,
-            "LTC": ltc_xpub,
-        },
+        xpubs=xpubs,
     )
     save_config(cfg.to_dict())
     return {"error": None, "result": True}
+
+
+def generate_xpub(asset: Asset, network_type, seed):
+    factory = CurrencyModelFactory()
+    model = factory.get_currency_model_for_asset(asset, network_type)
+    xpub = model.generate_xpub(seed)
+    return xpub
 
 
 async def get_wallets(request: Request):
@@ -269,7 +266,15 @@ async def post_asset(request: Request):
         decimals=int(asset_data["decimals"]),
     )
 
+    network_type = load_network_type()
+    for wallet in config.values():
+        seed = decrypt_seed(wallet.encrypted_seed, password)
+        wallet.xpubs[symbol] = generate_xpub(asset, network_type, seed)
+
+    # save results only after all manipulations
     add_asset_to_file(asset)
+    for wallet in config.values():
+        save_config(wallet.to_dict())
 
     return {"error": None, "result": True}
 

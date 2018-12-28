@@ -16,6 +16,7 @@ lib64
 /venv
 /response.json
 response2.json
+/assets.json
 /config.json
 /outs.json
 /network_type.json

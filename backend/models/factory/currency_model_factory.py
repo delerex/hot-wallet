@@ -1,5 +1,7 @@
 from typing import Dict
 
+from models.asset.asset import Asset
+from models.asset.asset_type import AssetType
 from models.btc.btc_model import BitcoinClass
 from models.currency_model import CurrencyModel
 from models.eth.eth_model import EthereumClass
@@ -15,6 +17,12 @@ class CurrencyModelFactory(metaclass=Singleton):
 
     def _get_key(self, currency, network_type):
         return currency + "-" + network_type
+
+    def get_currency_model_for_asset(self, asset: Asset, network_type: str) -> CurrencyModel:
+        if asset.asset_type == AssetType.ERC20:
+            return self.get_currency_model("ETH", network_type)
+        else:
+            return self.get_currency_model(asset.symbol, network_type)
 
     def get_currency_model(self, currency: str, network_type: str) -> CurrencyModel:
         key = self._get_key(currency, network_type)
