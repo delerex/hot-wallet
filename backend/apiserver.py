@@ -93,16 +93,12 @@ async def get_wallet(request: Request):
     config = load_config()
     outs = load_outs_file()
     wallet_id = request.match_info.get('wallet', None)
-    res = {
-        "BTC": {"pub": config[wallet_id].xpubs.get("BTC"),
-                "outs": outs.get(wallet_id, {}).get("BTC", {}).get("outs", None)},
-        "ETH": {"pub": config[wallet_id].xpubs.get("ETH"),
-                "outs": outs.get(wallet_id, {}).get("ETH", {}).get("outs", None)},
-        "LTC": {"pub": config[wallet_id].xpubs.get("LTC"),
-                "outs": outs.get(wallet_id, {}).get("LTC", {}).get("outs", None)},
-        "BCH": {"pub": config[wallet_id].xpubs.get("BCH"),
-                "outs": outs.get(wallet_id, {}).get("BCH", {}).get("outs", None)},
-    }
+    res = {}
+    for symbol, xpub in config[wallet_id].xpubs.items():
+        res[symbol] = {
+            "pub": xpub,
+            "outs": outs.get(wallet_id, {}).get(symbol, {}).get("outs", None),
+        }
     return {"error": None, "result": res}
 
 
