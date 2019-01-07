@@ -15,12 +15,7 @@ test_erc20abi.append(
             }
         ],
         "name": "showMeTheMoney",
-        "outputs": [
-            {
-                "name": "",
-                "type": "bool"
-            }
-        ],
+        "outputs": [],
         "payable": False,
         "stateMutability": "nonpayable",
         "type": "function"
