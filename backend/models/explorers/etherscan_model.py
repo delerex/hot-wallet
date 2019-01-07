@@ -18,14 +18,6 @@ class EtherScan:
             self._endpoint = self._ROPSTEN_ENDPOINT
             self._chain_id = 3
 
-
-    def balances(self):
-        res = {}
-        for w in self.wallets:
-            r = self.balance(w)
-            res[w] = r
-        return r
-
     def process_transaction(self, transaction):
         mt = MultiTransactionClass("ETH", transaction["hash"])
         mt.settime(transaction["timeStamp"])

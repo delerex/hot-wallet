@@ -7,25 +7,26 @@ from ethereum import utils as u, transactions
 
 from models.currency_model import CurrencyModel
 from models.eth.eth_transaction_distribution import EthTransactionDistribution
+from models.eth.web3api.web3api_factory import Web3ApiFactory
 from models.explorers.etherscan_model import EtherScan
 from models.eth.input_wallet import InputWallet
 from models.eth.transaction_intent import TransactionIntent
+from models.explorers.web3api_service import Web3ApiService
 from models.wallet_config import WalletConfig
 
 
 class EthereumClass(CurrencyModel):
-    headers = {
-        "Host": "blockchain.info",
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        "Referer": "https://blockchain.info/pushtx",
-        "X-Requested-With": "XMLHttpRequest",
-        "Accept": "application/json, text/javascript, */*; q=0.01",
-        "Connection": "keep-alive"
-    }
 
-    def __init__(self, network_type):
-        self._decimals = 18
+    def __init__(self, network_type, currency="ETH", decimals=18, coin_index=60,
+                 contract_address=None):
+        self._decimals = decimals
         self.etherscan = EtherScan(network_type)
+        self.coin_index = coin_index
+        self.currency = currency
+        self.contract_address = contract_address
+        web3api_factory = Web3ApiFactory()
+        self._web3api = web3api_factory.create(network_type)
+        self._web3api_service = Web3ApiService(self._web3api)
         self._transaction_distribution = EthTransactionDistribution()
 
     @property
@@ -38,7 +39,7 @@ class EthereumClass(CurrencyModel):
 
     def generate_xpub(self, root_seed) -> str:
         mk = bip32_master_key(root_seed)
-        hasha = bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), 60 + 2 ** 31), 2 ** 31)
+        hasha = bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), self.coin_index + 2 ** 31), 2 ** 31)
         xpub = u.privtopub(hasha)
         return xpub
 
@@ -51,7 +52,7 @@ class EthereumClass(CurrencyModel):
     def get_priv_pub_addr(self, root_seed, n):
         mk = bip32_master_key(root_seed)
 
-        hasha = bip32_ckd(bip32_ckd(bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), 60 + 2 ** 31), 2 ** 31), 0), n)
+        hasha = bip32_ckd(bip32_ckd(bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), self.coin_index + 2 ** 31), 2 ** 31), 0), n)
         pub = u.privtopub(hasha)
         priv = bip32_extract_key(hasha)
         addr = "0x" + u.encode_hex(u.privtoaddr(priv[:-2]))
@@ -59,10 +60,14 @@ class EthereumClass(CurrencyModel):
         return priv[:-2], pub, addr
 
     def get_balance(self, addr):
-        return self.decimals_to_float(int(self.etherscan.balance(addr)))
+        if self.currency == "ETH":
+            balance = int(self.etherscan.balance(addr))
+        else:
+            balance = self._web3api_service.get_balance(addr, self.contract_address)
+        return self.decimals_to_float(balance)
 
     def get_xpub(self, wallet: WalletConfig) -> str:
-        return wallet.xpubs.get("ETH")
+        return wallet.xpubs.get(self.currency)
 
     def get_nonce(self, addr):
         txs = self.etherscan.get_transactions(addr)

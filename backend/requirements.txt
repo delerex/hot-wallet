@@ -6,4 +6,5 @@ aiohttp==2.3.6
 asyncio==3.4.3
 yarl==0.18.0
 requests==2.19.1
+web3==4.7.2
 base58==1.0.0
