@@ -131,7 +131,9 @@ async def get_address(request: BaseRequest):
     wallet_config = config[wallet_id]
     network_type = load_network_type()
     factory = CurrencyModelFactory()
-    currency_model = factory.get_currency_model(currency, network_type)
+    assets = load_assets_file()
+    asset = assets.assets[currency]
+    currency_model = factory.get_currency_model_for_asset(asset, network_type)
     xpubkey = currency_model.get_xpub(wallet_config)
     if xpubkey is None:
         return {"error": "Cannot get address"}
