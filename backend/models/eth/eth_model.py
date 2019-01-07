@@ -40,7 +40,7 @@ class EthereumClass(CurrencyModel):
     def generate_xpub(self, root_seed) -> str:
         mk = bip32_master_key(root_seed)
         hasha = bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), self.coin_index + 2 ** 31), 2 ** 31)
-        xpub = u.privtopub(hasha)
+        xpub = bip32_privtopub(hasha)
         return xpub
 
     def get_addr_from_pub(self, pubkey, address_number):
@@ -55,7 +55,7 @@ class EthereumClass(CurrencyModel):
         hasha = bip32_ckd(bip32_ckd(bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), self.coin_index + 2 ** 31), 2 ** 31), 0), n)
         pub = u.privtopub(hasha)
         priv = bip32_extract_key(hasha)
-        addr = "0x" + u.encode_hex(u.privtoaddr(priv[:-2]))
+        addr = u.checksum_encode("0x" + u.encode_hex(u.privtoaddr(priv[:-2])))
 
         return priv[:-2], pub, addr
 
@@ -92,8 +92,10 @@ class EthereumClass(CurrencyModel):
         if isinstance(outs_percent, dict):
             outs_percent = [(key, value) for (key, value) in outs_percent.items()]
         input_wallets = self._get_input_wallets(seed, start, end)
-        tx_intents = self._transaction_distribution.get_transaction_intents(input_wallets, outs_percent)
-        # print(f"send_transactions\n: {tx_intents}")
+        print(f"send_transactions, input_wallets:\n {input_wallets}")
+        tx_intents = self._transaction_distribution.get_transaction_intents(input_wallets,
+                                                                            outs_percent)
+        print(f"send_transactions:\n {tx_intents}")
         gas_price = self.etherscan.gas_price
         estimated_gas = 21000
         txs = []

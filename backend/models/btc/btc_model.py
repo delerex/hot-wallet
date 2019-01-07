@@ -57,7 +57,14 @@ class BitcoinClass(CurrencyModel):
         master_key = BIP32Node.from_master_secret(root_seed)
         account_key = master_key.subkey_for_path(f"44p/{self._currency_number}p/0p")
         account_xpub = account_key.as_text()
+        old_xpub = self.generate_xpub_old(root_seed)
         return account_xpub
+
+    def generate_xpub_old(self, root_seed) -> str:
+        mk = bip32_master_key(root_seed)
+        xpriv = bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), 2 ** 31), 2 ** 31)
+        xpub = bip32_privtopub(xpriv)
+        return xpub
 
     def get_priv_pub_addr(self, root_seed, n):
         address_key: BIP32Node = self._get_priv_key(root_seed, n)

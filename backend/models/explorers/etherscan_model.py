@@ -74,7 +74,7 @@ class EtherScan:
         params = {"module": "proxy", "action": "eth_sendRawTransaction", "hex": transaction}
         r = requests.get(self._endpoint, params)
         response = r.json()
-        # print(f"send_transaction response: {response}")
+        print(f"send_transaction response: {response}")
         if "error" in response:
             print(f"send_transaction error: {response}")
             return None
