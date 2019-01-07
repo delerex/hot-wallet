@@ -106,13 +106,19 @@ async def get_balance(request: Request):
     wallet_id = request.match_info.get('wallet', None)
     currency = request.match_info.get('currency', None)
     number = request.match_info.get('number', None)
+
     config = load_config()
     if wallet_id not in config:
         return {"error": f"Not found wallet [{wallet_id}]"}
-    network_type = load_network_type()
     wallet_config = config[wallet_id]
+
+    network_type = load_network_type()
     factory = CurrencyModelFactory()
-    currency_model = factory.get_currency_model(currency, network_type)
+
+    assets = load_assets_file()
+    asset = assets.assets[currency]
+
+    currency_model = factory.get_currency_model_for_asset(asset, network_type)
     xpubkey = currency_model.get_xpub(wallet_config)
     if xpubkey is None:
         return {"error": "Cannot get address"}
