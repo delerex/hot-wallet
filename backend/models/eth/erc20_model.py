@@ -10,6 +10,7 @@ from models.eth.fee_wallet import FeeWallet
 from models.eth.input_wallet import InputWallet
 from models.eth.transaction_intent import TransactionIntent
 from models.eth.web3api.contract_erc20 import ContractErc20
+from models.utils.coin_decimals import CoinDecimals
 
 
 class Erc20Model(EthereumClass):
@@ -33,6 +34,13 @@ class Erc20Model(EthereumClass):
         # fee wallet path is r/44'/s'/0'/2/0
         priv, pub, addr = self.get_priv_pub_addr(seed, 0, change=2)
         return FeeWallet(address=addr, priv_key=priv)
+
+    def get_fee_wallet_balance(self, address):
+        value = self.get_fee_wallet_balance_raw(address)
+        return float(value / 10 ** CoinDecimals.get_decimals("ETH"))
+
+    def get_fee_wallet_balance_raw(self, address):
+        return int(self.etherscan.balance(address))
 
     def send_transactions(self, seed, outs_percent, start, end) -> List[str]:
         if isinstance(outs_percent, dict):
@@ -92,7 +100,7 @@ class Erc20Model(EthereumClass):
 
     def check_fee_wallet_has_enough_balance(self, amount, fee_wallet_address):
         # get eth balance from etherscan
-        fee_wallet_balance = int(self.etherscan.balance(fee_wallet_address))
+        fee_wallet_balance = self.get_fee_wallet_balance_raw(fee_wallet_address)
         if fee_wallet_balance < amount:
             raise ApiInsufficientFund(message=f"On fee wallet [{fee_wallet_address}] "
                                               f"insufficient fund: required {amount}, "

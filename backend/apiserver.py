@@ -10,6 +10,7 @@ from api.middleware import error_handling_middleware, cors_middleware, \
 from models.accounting import API as AccounttingAPI
 from models.asset.asset import AssetErc20, Asset
 from models.btc.btc_model import BitcoinClass
+from models.eth.erc20_model import Erc20Model
 from models.factory.currency_model_factory import CurrencyModelFactory
 from models.generate import decrypt_seed
 from models.generate import generate_mnemonic, generate_encrypted_seed
@@ -122,9 +123,26 @@ async def get_balance(request: Request):
     xpubkey = currency_model.get_xpub(wallet_config)
     if xpubkey is None:
         return {"error": "Cannot get address"}
-    addr = currency_model.get_addr_from_pub(xpubkey, number)
-    balance = currency_model.get_balance(addr)
+    addr = _get_address(currency_model, xpubkey, number)
+    if addr is not None and number.lower() == "fee":
+        if isinstance(currency_model, Erc20Model):
+            balance = currency_model.get_fee_wallet_balance(addr)
+        else:
+            balance = 0
+    else:
+        balance = currency_model.get_balance(addr)
     return {"error": None, "result": balance}
+
+
+def _get_address(currency_model, xpubkey, number):
+    if number.lower() == "fee":
+        if isinstance(currency_model, Erc20Model):
+            addr = currency_model.get_fee_wallet_address(xpub=xpubkey)
+        else:
+            addr = None
+    else:
+        addr = currency_model.get_addr_from_pub(xpubkey, number)
+    return addr
 
 
 async def get_address(request: BaseRequest):
@@ -143,7 +161,8 @@ async def get_address(request: BaseRequest):
     xpubkey = currency_model.get_xpub(wallet_config)
     if xpubkey is None:
         return {"error": "Cannot get address"}
-    addr = currency_model.get_addr_from_pub(xpubkey, number)
+
+    addr = _get_address(currency_model, xpubkey, number)
 
     return {"error": None, "result": addr}
 

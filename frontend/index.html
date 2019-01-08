@@ -240,6 +240,26 @@
                             </div>
                         </div>
                     </div>
+                    <div id="fee-wallet">
+                        <div class="col-12 mt-2">
+                            <div class="row">
+                                    <div class="col-6"><strong>Fee wallet</strong></div>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-2 mb-3">
+                            <div class="row">
+                                    <div class="col-6">Address</div>
+                                    <div class="col-3">Balance</div>
+                                    <div class="col-3">Actions</div>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-2 mb-3">
+                            <div class="row">
+                                    <div class="col-6" id="fee-wallet-address"></div>
+                                    <div class="col-3" id="fee-wallet-balance"></div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="col-12 mt-2">
                             <div class="row">
                                     <div class="col-6"><strong>Total</strong></div>
@@ -378,6 +398,7 @@
                 balancedIds=[];
                 let requests=0;
                 $(".wallets-list").empty();
+                $("#fee-wallet").addClass("d-none");
 
                 APIGetWallet(wallet, (response)=>{
                     if(response.error)
@@ -404,7 +425,7 @@
 
 
                     [...Array(end_number - start_number).keys()].forEach( (a)=>{
-                        let bip32_i = a + start_number
+                        let bip32_i = a + start_number;
                         console.log(a, bip32_i, start_number, end_number);
                         APIGetAddress(wallet, currency, bip32_i, function(response){
 
@@ -420,7 +441,24 @@
                             }
 
                         });
-                    })
+                    });
+
+                    APIGetFeeWalletAddress(wallet, currency, function (response) {
+                        console.log(response);
+                        if (!response.error && response.result) {
+                            $("#fee-wallet").removeClass("d-none");
+                            let wallet_address = response.result;
+                            $("#fee-wallet-address").text(wallet_address);
+                            APIGetFeeWalletBalance(wallet, currency, function (balanceResponse) {
+                                if (!balanceResponse.error) {
+                                    let wallet_balance = balanceResponse.result;
+                                    $("#fee-wallet-balance").text(wallet_balance);
+                                }
+                            })
+                        } else {
+                            $("#fee-wallet").addClass("d-none");
+                        }
+                    });
 
                     console.log(response);
                 });

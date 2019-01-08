@@ -140,8 +140,24 @@ function APIGetAddress(wallet, currency, number, callback = null) {
     });
 }
 
+function APIGetFeeWalletAddress(wallet, currency, callback = null) {
+    GetAPI(API.wallets + wallet + "/" + currency + "/fee/address/", {}, function (response) {
+        if (callback) {
+            callback(response);
+        }
+    });
+}
+
 function APIGetBalance(wallet, currency, number, callback = null) {
     GetAPI(API.wallets + wallet + "/" + currency + "/" + number.toString() + "/balance/", {}, function (response) {
+        if (callback) {
+            callback(response);
+        }
+    });
+}
+
+function APIGetFeeWalletBalance(wallet, currency, callback = null) {
+    GetAPI(API.wallets + wallet + "/" + currency + "/fee/balance/", {}, function (response) {
         if (callback) {
             callback(response);
         }
