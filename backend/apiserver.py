@@ -206,7 +206,9 @@ async def send_transactions(request: Request):
     currency_outs: dict = wallet_outs[currency]["outs"]
     factory = CurrencyModelFactory()
 
-    currency_model = factory.get_currency_model(currency, network_type)
+    assets = load_assets_file()
+    asset = assets.assets[currency]
+    currency_model = factory.get_currency_model_for_asset(asset, network_type)
 
     # TODO сheck signature
     # btc_model = BitcoinClass()

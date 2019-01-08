@@ -1,7 +1,6 @@
 from typing import List, Dict
 
 import rlp
-from bitcoin import bip32_master_key, bip32_ckd
 from eth_utils import decode_hex
 from ethereum import transactions
 
@@ -74,6 +73,11 @@ class Erc20Model(EthereumClass):
         self.prepare_input_wallets(tx_intents, gas_price, fee_wallet)
 
         # 6. sign and send transactions
+        tx_hashes = self._sign_and_send_transactions(tx_intents)
+
+        return tx_hashes
+
+    def _sign_and_send_transactions(self, tx_intents):
         tx_hashes = []
         for intent in tx_intents:
             intent: TransactionIntent = intent
@@ -81,13 +85,14 @@ class Erc20Model(EthereumClass):
             signed = intent.tx.sign(in_wallet.priv, self.etherscan.chain_id)
             unencoded_tx = rlp.encode(signed)
             signed_tx = "0x" + unencoded_tx.hex()
+            print("send transaction to", intent.out_address, "with nonce", intent.tx.nonce)
             tx_hash = self.etherscan.send_transaction(signed_tx)
             tx_hashes.append(tx_hash)
-
         return tx_hashes
 
     def check_fee_wallet_has_enough_balance(self, amount, fee_wallet_address):
-        fee_wallet_balance = self.etherscan.balance(fee_wallet_address)
+        # get eth balance from etherscan
+        fee_wallet_balance = int(self.etherscan.balance(fee_wallet_address))
         if fee_wallet_balance < amount:
             raise ApiInsufficientFund(message=f"On fee wallet [{fee_wallet_address}] "
                                               f"insufficient fund: required {amount}, "
@@ -107,20 +112,18 @@ class Erc20Model(EthereumClass):
     def prepare_input_wallet(self, input_wallet: InputWallet, amount, gas_price,
                              fee_wallet: FeeWallet):
         estimated_gas = 21000
-        eth_balance = self.etherscan.balance(input_wallet.address)
-        if eth_balance < amount:
-            nonce = self.etherscan.get_nonce(fee_wallet.address)
-            nonce = max(nonce, self.fee_nonce)
-            tx = transactions.Transaction(nonce=nonce,
-                                          to=input_wallet.address,
-                                          value=amount - eth_balance,
-                                          gasprice=gas_price,
-                                          startgas=estimated_gas,
-                                          data=b"")
-            signed = tx.sign(fee_wallet.priv_key, self.etherscan.chain_id)
-            unencoded_tx = rlp.encode(signed)
-            signed_tx = "0x" + unencoded_tx.hex()
-            tx_hash = self.etherscan.send_transaction(signed_tx)
-            if tx_hash is None:
-                raise ApiUnexpectedError(message=f"Error while filling input wallets with fee")
-            self.fee_nonce = nonce + 1
+        nonce = self._web3api.get_transaction_count(fee_wallet.address)
+        nonce = max(nonce, self.fee_nonce)
+        tx = transactions.Transaction(nonce=nonce,
+                                      to=input_wallet.address,
+                                      value=amount,
+                                      gasprice=gas_price,
+                                      startgas=estimated_gas,
+                                      data=b"")
+        signed = tx.sign(fee_wallet.priv_key, self.etherscan.chain_id)
+        unencoded_tx = rlp.encode(signed)
+        signed_tx = "0x" + unencoded_tx.hex()
+        tx_hash = self.etherscan.send_transaction(signed_tx)
+        if tx_hash is None:
+            raise ApiUnexpectedError(message=f"Error while filling input wallets with fee")
+        self.fee_nonce = nonce + 1

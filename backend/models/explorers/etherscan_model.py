@@ -41,7 +41,9 @@ class EtherScan:
         params = {"module": "account", "action": "balance", "address": wallet, "tag": "latest"
                   }
         r = requests.get(self._endpoint, params)
-        ret = r.json()["result"]
+        response = r.json()
+        print("balance response of wallet", wallet, response)
+        ret = response["result"]
         return ret
 
     @property

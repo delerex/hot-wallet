@@ -88,7 +88,7 @@ class EthereumClass(CurrencyModel):
         nonce_dict = {}
         for w in wallets:
             if w.balance > 0:
-                nonce_dict[w.address] = self.etherscan.get_nonce(w.address)
+                nonce_dict[w.address] = self._web3api.get_transaction_count(w.address)
         return nonce_dict
 
     def send_transactions(self, seed, outs_percent, start, end) -> List[str]:

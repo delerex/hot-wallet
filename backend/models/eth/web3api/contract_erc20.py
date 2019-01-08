@@ -8,7 +8,6 @@ app_log = logging.getLogger(__name__)
 
 class ContractErc20:
     def __init__(self, contract: Contract):
-        print(f"creating contract: {contract} with type {type(contract)}")
         self.contract = contract
 
     def get_name(self):
