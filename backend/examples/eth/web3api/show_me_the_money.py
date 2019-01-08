@@ -19,24 +19,27 @@ eth_model = EthereumClass(network_type=NetworkType.TESTNET)
 priv_key, pub_key, addr = eth_model.get_priv_pub_addr(seed, 0)
 print("priv, pub, addr", priv_key, pub_key, addr)
 
+contract_addr = "0x722dd3F80BAC40c951b51BdD28Dd19d435762180"
+
 web3api_factory = Web3ApiFactory()
 web3api = web3api_factory.create(NetworkType.TESTNET)
-contract: ContractTest = web3api.get_contract("0x722dd3F80BAC40c951b51BdD28Dd19d435762180",
+contract: ContractTest = web3api.get_contract(contract_addr,
                                               abi=test_erc20abi,
                                               clz=ContractTest)
-transaction = contract.show_me_the_money("0x3F7aBaD32E7D563e81C55E154aDcF77A88E4A98f", 10 ** 18)
+transaction = contract.show_me_the_money(addr, 10 ** 18)
 print(transaction)
-tx_count = web3api.get_transaction_count("0x3F7aBaD32E7D563e81C55E154aDcF77A88E4A98f")
+tx_count = web3api.get_transaction_count(addr)
 print("tx_count:", tx_count)
 transaction["nonce"] = tx_count
 tx = transactions.Transaction(nonce=tx_count,
-                              to="0x722dd3F80BAC40c951b51BdD28Dd19d435762180",
+                              to=contract_addr,
                               value=transaction["value"],
                               gasprice=transaction["gasPrice"],
                               startgas=transaction["gas"],
                               data=decode_hex(transaction["data"]))
 
-signed = tx.sign(priv_key, 3)
+chain_id = 3    # Ropsten id
+signed = tx.sign(priv_key, chain_id)
 unencoded_tx = rlp.encode(signed)
 signed_tx = "0x" + unencoded_tx.hex()
 result = web3api.send_raw_transaction(signed_tx)

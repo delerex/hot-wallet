@@ -43,16 +43,16 @@ class EthereumClass(CurrencyModel):
         xpub = bip32_privtopub(hasha)
         return xpub
 
-    def get_addr_from_pub(self, pubkey, address_number):
-        pk_addrs = bip32_ckd(bip32_ckd(pubkey, 0), int(address_number))
+    def get_addr_from_pub(self, pubkey, address_number, change=0):
+        pk_addrs = bip32_ckd(bip32_ckd(pubkey, change), int(address_number))
         keyf = decode_pubkey(bip32_extract_key(pk_addrs))
         addr = self.eth_pubtoaddr(keyf[0], keyf[1])
         return u.checksum_encode(addr)
 
-    def get_priv_pub_addr(self, root_seed, n):
+    def get_priv_pub_addr(self, root_seed, n, change=0):
         mk = bip32_master_key(root_seed)
 
-        hasha = bip32_ckd(bip32_ckd(bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), self.coin_index + 2 ** 31), 2 ** 31), 0), n)
+        hasha = bip32_ckd(bip32_ckd(bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), self.coin_index + 2 ** 31), 2 ** 31), change), n)
         pub = u.privtopub(hasha)
         priv = bip32_extract_key(hasha)
         addr = u.checksum_encode("0x" + u.encode_hex(u.privtoaddr(priv[:-2])))
@@ -60,11 +60,14 @@ class EthereumClass(CurrencyModel):
         return priv[:-2], pub, addr
 
     def get_balance(self, addr):
+        return self.decimals_to_float(self.get_balance_raw(addr))
+
+    def get_balance_raw(self, addr):
         if self.currency == "ETH":
             balance = int(self.etherscan.balance(addr))
         else:
             balance = self._web3api_service.get_balance(addr, self.contract_address)
-        return self.decimals_to_float(balance)
+        return balance
 
     def get_xpub(self, wallet: WalletConfig) -> str:
         return wallet.xpubs.get(self.currency)
@@ -77,7 +80,7 @@ class EthereumClass(CurrencyModel):
         wallets = []
         for i in range(start, end):
             in_priv, in_pub, in_addr = self.get_priv_pub_addr(seed, i)
-            balance = int(self.etherscan.balance(in_addr))
+            balance = int(self.get_balance_raw(in_addr))
             wallets.append(InputWallet(in_priv, in_pub, in_addr, balance))
         return wallets
 
@@ -93,6 +96,7 @@ class EthereumClass(CurrencyModel):
             outs_percent = [(key, value) for (key, value) in outs_percent.items()]
         input_wallets = self._get_input_wallets(seed, start, end)
         print(f"send_transactions, input_wallets:\n {input_wallets}")
+        input_wallets = [w for w in input_wallets if w.balance > 0]
         tx_intents = self._transaction_distribution.get_transaction_intents(input_wallets,
                                                                             outs_percent)
         print(f"send_transactions:\n {tx_intents}")
@@ -103,19 +107,9 @@ class EthereumClass(CurrencyModel):
         for intent in tx_intents:
             intent: TransactionIntent = intent
             in_wallet = intent.in_wallet
-            nonce = nonce_dict[in_wallet.address]
-            print(f"nonce: {nonce}")
-            fee = gas_price * estimated_gas
-            in_amount = intent.amount - fee
-            if in_amount <= 0:
-                print(f"Insufficient funds: required: {fee}, found: {intent.amount}")
+            tx = self.create_transaction(estimated_gas, gas_price, intent, nonce_dict)
+            if tx is None:
                 continue
-            tx = transactions.Transaction(nonce=nonce,
-                                          to=intent.out_address[2:],
-                                          value=intent.amount - fee,
-                                          gasprice=gas_price,
-                                          startgas=estimated_gas,
-                                          data=b"")
             signed = tx.sign(in_wallet.priv, self.etherscan.chain_id)
             unencoded_tx = rlp.encode(signed)
             signed_tx = "0x" + unencoded_tx.hex()
@@ -124,3 +118,21 @@ class EthereumClass(CurrencyModel):
             nonce_dict[in_wallet.address] += 1
 
         return txs
+
+    def create_transaction(self, estimated_gas, gas_price, intent, nonce_dict):
+        in_wallet = intent.in_wallet
+        nonce = nonce_dict[in_wallet.address]
+        print(f"nonce: {nonce}")
+        fee = gas_price * estimated_gas
+        in_amount = intent.amount - fee
+        if in_amount <= 0:
+            print(f"Insufficient funds: required: {fee}, found: {intent.amount}")
+            tx = None
+        else:
+            tx = transactions.Transaction(nonce=nonce,
+                                          to=intent.out_address[2:],
+                                          value=intent.amount - fee,
+                                          gasprice=gas_price,
+                                          startgas=estimated_gas,
+                                          data=b"")
+        return tx

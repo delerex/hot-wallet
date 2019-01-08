@@ -4,6 +4,7 @@ from models.asset.asset import Asset, AssetErc20
 from models.asset.asset_type import AssetType
 from models.btc.btc_model import BitcoinClass
 from models.currency_model import CurrencyModel
+from models.eth.erc20_model import Erc20Model
 from models.eth.eth_model import EthereumClass
 from models.explorers.btccom_explorer import BtcComExplorer
 from models.explorers.chain_so_explorer import ChainSoExplorer
@@ -26,11 +27,11 @@ class CurrencyModelFactory(metaclass=Singleton):
         if asset.asset_type == AssetType.ERC20:
             asset: AssetErc20 = asset
             key = self._get_key(asset.symbol, network_type)
-            model = EthereumClass(network_type,
-                                  currency=asset.symbol,
-                                  decimals=asset.decimals,
-                                  coin_index=asset.coin_index,
-                                  contract_address=asset.contract_address)
+            model = Erc20Model(network_type,
+                               currency=asset.symbol,
+                               decimals=asset.decimals,
+                               coin_index=asset.coin_index,
+                               contract_address=asset.contract_address)
             self._models[key] = model
             return model
         else:

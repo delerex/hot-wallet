@@ -16,3 +16,15 @@ class OperationFailed(RequestError):
 
     def __init__(self, code="ApiOperationFailed", message=None):
         super().__init__(code=code, message=message)
+
+
+class ApiInsufficientFund(RequestError):
+
+    def __init__(self, code="ApiInsufficientFund", message=None):
+        super().__init__(code=code, message=message)
+
+
+class ApiUnexpectedError(RequestError):
+
+    def __init__(self, code="ApiUnexpectedError", message=None):
+        super().__init__(code=code, message=message)

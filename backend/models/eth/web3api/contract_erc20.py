@@ -31,3 +31,7 @@ class ContractErc20:
                                                       "filter": {"from": "0x44a37eafa941a91b6fcc4a03ed097b8ab0b8523c"}
                                                   })
         print(f"event_filter: {event_filter}, type is {type(event_filter)}")
+
+    def transfer(self, address, value):
+        address = to_checksum_address(address)
+        return self.contract.functions.transfer(address, value).buildTransaction()
