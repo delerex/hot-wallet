@@ -16,7 +16,7 @@ class Web3ApiFactory(metaclass=Singleton):
     def __init__(self):
         self.apis: Dict[str, Web3Api] = {}
 
-    def create(self, network_type: str):
+    def create(self, network_type: str) -> Web3Api:
         if network_type in self.apis:
             return self.apis[network_type]
         if network_type == NetworkType.MAIN:

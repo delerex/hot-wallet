@@ -26,6 +26,12 @@ class Web3Api:
         contract = self.web3.eth.contract(abi=abi, address=self.web3.toChecksumAddress(address))
         return clz(contract)
 
+    def get_transaction_count(self, address: str) -> int:
+        return self.web3.eth.getTransactionCount(address)
+
+    def send_raw_transaction(self, raw_transaction):
+        return self.web3.eth.sendRawTransaction(raw_transaction)
+
     def get_block(self, block_identifier) -> Optional[Block]:
         start_time = datetime.now()
         block = self.web3.eth.getBlock(block_identifier=block_identifier, full_transactions=True)
