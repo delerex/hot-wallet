@@ -9,6 +9,7 @@ from api.middleware import error_handling_middleware, cors_middleware, \
     request_and_auth_data_middleware
 from models.accounting import API as AccounttingAPI
 from models.asset.asset import AssetErc20, Asset
+from models.asset.asset_defaults import AssetDefaults
 from models.btc.btc_model import BitcoinClass
 from models.eth.erc20_model import Erc20Model
 from models.factory.currency_model_factory import CurrencyModelFactory

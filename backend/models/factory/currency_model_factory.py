@@ -9,6 +9,7 @@ from models.eth.eth_model import EthereumClass
 from models.explorers.btccom_explorer import BtcComExplorer
 from models.explorers.chain_so_explorer import ChainSoExplorer
 from models.utils.singleton import Singleton
+from models.xrp.ripple_model import RippleModel
 
 
 class CurrencyModelFactory(metaclass=Singleton):
@@ -51,6 +52,8 @@ class CurrencyModelFactory(metaclass=Singleton):
         elif currency == "LTC":
             explorer = ChainSoExplorer.from_symbol_and_network_type(currency, network_type)
             model = BitcoinClass(network_type, symbol=currency, explorer=explorer)
+        elif currency == "XRP":
+            model = RippleModel(network_type)
         else:
             raise NotImplementedError(f"Unsupported currency: {currency}")
         self._models[key] = model

@@ -40,4 +40,7 @@ class RippleJsonRpc:
         print("get_balance response", response)
         if response is None:
             return None
+        if response["result"]["status"] == "error":
+            print(("get_balance error for ", address, response["result"]))
+            return 0
         return int(response["result"]["account_data"]["Balance"])
