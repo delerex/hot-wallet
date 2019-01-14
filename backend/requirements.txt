@@ -1,5 +1,6 @@
 pycrypto==2.6.1
 ethereum==2.3.2
+ecdsa>=0.10
 bitcoin==1.1.42
 mnemonic==0.18
 aiohttp==2.3.6

@@ -28,9 +28,11 @@ class RippleJsonRpc:
         }
         response = requests.post(self._endpoint, json=payload, headers=headers)
         if response.status_code != 200:
-            print(response.text)
+            print(method, "error:", response.text)
             return None
         result = response.json()
+        if result["result"]["status"] == "error":
+            print(method, "error:", result["result"])
         return result
 
     def get_balance(self, address: str) -> Optional[int]:
@@ -44,3 +46,44 @@ class RippleJsonRpc:
             print(("get_balance error for ", address, response["result"]))
             return 0
         return int(response["result"]["account_data"]["Balance"])
+
+    def get_fee(self) -> Optional[int]:
+        response = self._request("fee")
+        print("get_fee response", response)
+        if response is None:
+            return None
+        return int(response["result"]["drops"]["minimum_fee"])
+
+    def get_account_info(self, address: str) -> Optional[dict]:
+        response = self._request("account_info", params={
+            "account": address
+        })
+        print("get_account_info response", response)
+        if response is None:
+            return None
+        return response["result"]
+
+    def get_transactions(self, address: str) -> Optional[dict]:
+        response = self._request("account_tx", params={
+            "account": address
+        })
+        print("get_transactions response", response)
+        if response is None:
+            return None
+        return response["result"]
+
+    def submit(self, tx_blob: str, fail_hard: bool = False) -> Optional[dict]:
+        """
+        Method applies a transaction and sends it to the network to be confirmed and included
+        in future ledgers.
+        Reference: https://developers.ripple.com/submit.html
+        """
+        params = dict(
+            tx_blob=tx_blob,
+            fail_hard=fail_hard
+        )
+        response = self._request("submit", params=params)
+        print("submit: ", tx_blob)
+        if response is None:
+            return None
+        return response["result"]
