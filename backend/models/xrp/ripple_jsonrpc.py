@@ -61,7 +61,7 @@ class RippleJsonRpc:
         print("get_account_info response", response)
         if response is None:
             return None
-        return response["result"]
+        return response["result"]["account_data"]
 
     def get_transactions(self, address: str) -> Optional[dict]:
         response = self._request("account_tx", params={
