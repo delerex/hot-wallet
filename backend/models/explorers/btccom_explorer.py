@@ -11,7 +11,8 @@ from models.btc.input_transaction import InputTransaction
 from models.btc.network_factory import NetworkFactory
 from models.network_type import NetworkType
 from models.utils.coin_decimals import CoinDecimals
-
+from datetime import datetime, timedelta
+from threading import Lock
 
 class BtcComExplorer(BtcService):
     _ENDPOINTS = {
@@ -26,6 +27,9 @@ class BtcComExplorer(BtcService):
     }
 
     _VERSION = 3
+
+    mutex = Lock()
+    mutextime = datetime.now()
 
     def __init__(self, symbol, network_type: str):
         """
@@ -50,11 +54,24 @@ class BtcComExplorer(BtcService):
             raise ValueError(f"Unsupported network type: {network_type}, for symbol {symbol}")
         return self._ENDPOINTS[symbol][network_type] + f"v{self._VERSION}/"
 
-    @staticmethod
-    def _request(url) -> Optional[dict]:
-        sleep(0.2)
+    def _request(self, url) -> Optional[dict]:
+        self.mutex.acquire()
+        while datetime.now() - self.mutextime < timedelta(milliseconds=500):
+            sleep(0.01)
+
+        starttime  = datetime.now()
+        print(f"_request start {starttime}")
         resp = requests.get(url, allow_redirects=True)
+        endtime = datetime.now()
+        print(f"_request end {endtime} {endtime-starttime} ")
+        self.mutex.release()
+
+        bad_request_counter = 0
+
         while resp.status_code == 429:
+            bad_request_counter += 1
+            if bad_request_counter > 10:
+                return None
             print("Too many requests. Waiting...")
             sleep(1)
             resp = requests.get(url, allow_redirects=True)
@@ -72,12 +89,12 @@ class BtcComExplorer(BtcService):
         return data
 
     def get_balance(self, address) -> Optional[int]:
-        resp = requests.get(f"{self._endpoint}address/{address}",
-                            allow_redirects=True)
-        data = resp.json()
+        resp = self._request(f"{self._endpoint}address/{address}")
+        data = resp
         if data["data"] is None:
             return 0
         return data["data"]["balance"]
+
 
     def get_input_transactions(self, address) -> List[InputTransaction]:
         unspent = self.get_unspent_tx(address)
