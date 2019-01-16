@@ -72,9 +72,8 @@ class BtcComExplorer(BtcService):
         return data
 
     def get_balance(self, address) -> Optional[int]:
-        resp = requests.get(f"{self._endpoint}address/{address}",
-                            allow_redirects=True)
-        data = resp.json()
+        resp = self._request(f"{self._endpoint}address/{address}")
+        data = resp
         if data["data"] is None:
             return 0
         return data["data"]["balance"]
