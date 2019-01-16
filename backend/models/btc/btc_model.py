@@ -47,7 +47,7 @@ class BitcoinClass(CurrencyModel):
     def get_addr_from_pub(self, account_xpub, address_number):
         account_key = key_from_text(account_xpub, networks=[self._network])
         address_key = account_key.subkey_for_path(f"0/{address_number}")
-        return address_key.address()
+        return self.get_address(address_key)
 
     def get_balance(self, addr):
         return self.decimals_to_float(int(self._service.get_balance(addr)))
@@ -57,20 +57,13 @@ class BitcoinClass(CurrencyModel):
         master_key = BIP32Node.from_master_secret(root_seed)
         account_key = master_key.subkey_for_path(f"44p/{self._currency_number}p/0p")
         account_xpub = account_key.as_text()
-        old_xpub = self.generate_xpub_old(root_seed)
         return account_xpub
-
-    def generate_xpub_old(self, root_seed) -> str:
-        mk = bip32_master_key(root_seed)
-        xpriv = bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), 2 ** 31), 2 ** 31)
-        xpub = bip32_privtopub(xpriv)
-        return xpub
 
     def get_priv_pub_addr(self, root_seed, n):
         address_key: BIP32Node = self._get_priv_key(root_seed, n)
         xpub = self._get_xpub(address_key)
         priv = self._get_priv(address_key)
-        addr = self._get_address(address_key)
+        addr = self.get_address(address_key)
         return priv, xpub, addr
 
     def _get_priv_key(self, root_seed, n) -> BIP32Node:
@@ -86,7 +79,7 @@ class BitcoinClass(CurrencyModel):
     def _get_priv(self, key: BIP32Node) -> str:
         return b2h(to_bytes_32(key.secret_exponent()))
 
-    def _get_address(self, key: BIP32Node) -> str:
+    def get_address(self, key: BIP32Node) -> str:
         return key.address(use_uncompressed=False)
 
     def get_xpub(self, wallet: WalletConfig) -> str:
@@ -99,7 +92,7 @@ class BitcoinClass(CurrencyModel):
         input_transactions = []
         for i in range(start, end):
             priv_key = self._get_priv_key(seed, i)
-            in_addr = self._get_address(priv_key)
+            in_addr = self.get_address(priv_key)
             txs = self._service.get_input_transactions(in_addr)
             for tx in txs:
                 if not tx.is_spent:

@@ -1,6 +1,7 @@
 from pycoin.networks.bitcoinish import Network
 from pycoin.symbols import btc, xtn, ltc, xlt, bch, xch
 
+from models.btc.symbols import xrp, xrp_testnet
 from models.network_type import NetworkType
 from models.utils.singleton import Singleton
 
@@ -19,6 +20,10 @@ class NetworkFactory(metaclass=Singleton):
         "BCH": {
             NetworkType.MAIN: bch.network,
             NetworkType.TESTNET: xch.network,
+        },
+        "XRP": {
+            NetworkType.MAIN: xrp.network,
+            NetworkType.TESTNET: xrp_testnet.network,
         },
     }
 

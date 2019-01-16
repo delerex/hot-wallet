@@ -3,6 +3,7 @@ from typing import Dict
 
 from models.asset.asset import Asset
 from models.asset.asset_config import AssetConfig
+from models.asset.asset_defaults import AssetDefaults
 from models.network_type import NetworkType
 from models.wallet_config import WalletConfig
 

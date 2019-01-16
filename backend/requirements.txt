@@ -1,5 +1,6 @@
 pycrypto==2.6.1
 ethereum==2.3.2
+ecdsa>=0.10
 bitcoin==1.1.42
 mnemonic==0.18
 aiohttp==2.3.6
@@ -8,3 +9,6 @@ yarl==0.18.0
 requests==2.19.1
 web3==4.7.2
 base58==1.0.0
+jsonrpcclient=2.0.1
+jsonrpc-requests==0.4.0
+git+https://github.com/SergeiVasilenko/pycoin@master#pycoin=0.90a

@@ -1,4 +1,5 @@
 import abc
+from typing import Dict
 
 from bitcoin import *
 
@@ -52,5 +53,5 @@ class CurrencyModel(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def send_transactions(self, masterseed, outs, start, end):
+    def send_transactions(self, masterseed, outs: Dict[str, int], start, end):
         pass

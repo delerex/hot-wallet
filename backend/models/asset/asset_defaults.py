@@ -8,4 +8,5 @@ class AssetDefaults:
         Asset("LTC", 8),
         Asset("BCH", 8),
         Asset("ETH", 18),
+        Asset("XRP", 6),
     ]
