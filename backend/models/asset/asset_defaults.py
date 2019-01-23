@@ -9,4 +9,5 @@ class AssetDefaults:
         Asset("BCH", 8),
         Asset("ETH", 18),
         Asset("XRP", 6),
+        Asset("EOS", 4),
     ]

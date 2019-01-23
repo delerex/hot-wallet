@@ -11,4 +11,5 @@ web3==4.7.2
 base58==1.0.0
 jsonrpcclient=2.0.1
 jsonrpc-requests==0.4.0
+two1==3.10.9
 git+https://github.com/SergeiVasilenko/pycoin@master#pycoin=0.90a

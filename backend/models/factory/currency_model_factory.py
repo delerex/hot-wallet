@@ -4,6 +4,7 @@ from models.asset.asset import Asset, AssetErc20
 from models.asset.asset_type import AssetType
 from models.btc.btc_model import BitcoinClass
 from models.currency_model import CurrencyModel
+from models.eos.eos_model import EosModel
 from models.eth.erc20_model import Erc20Model
 from models.eth.eth_model import EthereumClass
 from models.explorers.btccom_explorer import BtcComExplorer
@@ -54,6 +55,8 @@ class CurrencyModelFactory(metaclass=Singleton):
             model = BitcoinClass(network_type, symbol=currency, explorer=explorer)
         elif currency == "XRP":
             model = RippleModel(network_type)
+        elif currency == "EOS":
+            model = EosModel(network_type)
         else:
             raise NotImplementedError(f"Unsupported currency: {currency}")
         self._models[key] = model

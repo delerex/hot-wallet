@@ -110,12 +110,3 @@ class RippleModel(CurrencyModel):
 
     def get_nonce(self, addr):
         pass
-
-    # def get_xpub(self, wallet: WalletConfig) -> str:
-    #     pass
-    #
-    # def get_nonce(self, addr):
-    #     pass
-    #
-    # def send_transactions(self, masterseed, outs, start, end):
-    #     pass
