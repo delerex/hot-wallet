@@ -206,6 +206,18 @@ function APIPostAsset(symbol, contract_address, coin_index, decimals, password, 
     });
 }
 
+function APIPostEosAccount(account, master_password, callback = null) {
+    data = {
+        account_id: account,
+        password: master_password,
+    };
+    PostAPI("chain/eos/account/", data, function (response) {
+        if (callback) {
+            callback(response);
+        }
+    });
+}
+
 function APISendTransactions(wallet, currency, start, end, password, callback = null) {
     PostAPI(API.wallets + wallet + "/" + currency + "/transactions/", {password: password, start: start, end: end}, function (response) {
         if (callback) {

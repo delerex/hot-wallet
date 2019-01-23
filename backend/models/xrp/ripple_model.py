@@ -18,8 +18,8 @@ from models.xrp.sign import sign_transaction
 class RippleModel(CurrencyModel):
 
     def __init__(self, network_type):
+        super().__init__("XRP")
         self.data_api = RippleJsonRpc(network_type)
-        self.currency = "XRP"
         network_factory = NetworkFactory()
         self._network = network_factory.get_network(self.currency, network_type)
 

@@ -29,6 +29,7 @@ class BitcoinClass(CurrencyModel):
     }
 
     def __init__(self, network_type: str, symbol: str = "BTC", explorer: BtcService = None):
+        super().__init__(symbol)
         self._decimals = 10
         # self._service: BtcService = Blockcypher(network_type=network_type)
         # self._service: BtcService = BtcComExplorer(network_type=network_type)

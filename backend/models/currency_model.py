@@ -8,6 +8,9 @@ from models.wallet_config import WalletConfig
 
 class CurrencyModel(abc.ABC):
 
+    def __init__(self, currency):
+        self.currency = currency
+
     def float_to_decimal(self, value) -> int:
         return int(value * 10 ** self.decimals)
 

@@ -163,11 +163,38 @@
                     <form class="form">
                         <div class="form-row">
                                 <div class="form-group col-12 mt-auto">
-                                    <input type="text" class="wallet-public-key form-control form-control-sm full-width" id="wallet-public" placeholder="10" value="" disabled>
+                                    <input id="wallet-public" type="text" class="wallet-public-key form-control form-control-sm full-width" placeholder="10" value="" disabled>
                                     <button type="submit" class="btn btn-primary btn-sm" onclick="javascript:copyToClipboard('#wallet-public')">Copy</button>
                                 </div>
                         </div>
                     </form>
+                </div>
+                <div id="eos-account">
+                    <h5>EOS account</h5>
+                    <div class="col-12" id="eos-account-view">
+                        <span class="col-6" id="eos-account-id"></span>
+                    </div>
+                    <div class="col-12" id="eos-account-input">
+                        <form id="eos-account-form">
+                            <div id="eos-account-entries">
+                            </div>
+                            <div class="form-row">
+                                 <div class="form-group col-3">
+                                    <label for="currentWalletFrom">Account</label>
+                                    <input type="text" class="form-control" id="eosAccountId-input"  placeholder="account id">
+                                </div>
+                                <div class="form-group col-3">
+                                        <label for="passwordInput">Password (master)</label>
+                                        <input type="password" class="form-control" id="eosAccount-masterPasswordInput" placeholder="Master Key password">
+                                </div>
+
+                                <div class="form-group col-2 mt-auto">
+                                        <button type="submit" class="btn btn-primary" id="buttonAddEosAccount">Add</button>
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
                 </div>
                 <hr>
                 <h4>Transactions</h4>
@@ -393,12 +420,35 @@
                 })
             }
 
+            function setEosAccountId(accountId) {
+                if (accountId) {
+                    $("#eos-account-input").addClass("d-none");
+                    $("#eos-account-view").removeClass("d-none");
+                    $("#eos-account-id").text(accountId);
+                } else {
+                    $("#eos-account-input").removeClass("d-none");
+                    $("#eos-account-view").addClass("d-none");
+                }
+            }
+
+            function setupEosWallet(wallets) {
+                let wallet = wallets["EOS"];
+                $("#eos-account").removeClass("d-none");
+                let accountId;
+                if (wallet.data && wallet.data.account_id) {
+                    accountId = wallet.data.account_id;
+                } else {
+                    accountId = null;
+                }
+                setEosAccountId(accountId);
+            }
 
             function selectWallet(wallet, currency, start_number=0, end_number=10 ){
                 balancedIds=[];
                 let requests=0;
                 $(".wallets-list").empty();
                 $("#fee-wallet").addClass("d-none");
+                $("#eos-account").addClass("d-none");
 
                 APIGetWallet(wallet, (response)=>{
                     if(response.error)
@@ -423,25 +473,29 @@
 
                     }
 
-
-                    [...Array(end_number - start_number).keys()].forEach( (a)=>{
-                        let bip32_i = a + start_number;
-                        console.log(a, bip32_i, start_number, end_number);
-                        APIGetAddress(wallet, currency, bip32_i, function(response){
-
+                     function getAddress(bip32_i, a) {
+                        APIGetAddress(wallet, currency, bip32_i, function (response) {
                             console.log(response);
-                            if( !response.error && response.result){
+                            if (!response.error && response.result) {
                                 let wallet_address = response.result;
                                 $(".wallets-list").append(renderWallet(bip32_i, wallet_address));
-                                $("#balance_loading_"+a).removeClass("d-none");
-                                getBalance(wallet, currency, bip32_i, function(){
-                                    console.log("Finished", bip32_i );
+                                $("#balance_loading_" + a).removeClass("d-none");
+                                getBalance(wallet, currency, bip32_i, function () {
+                                    console.log("Finished", bip32_i);
                                 })
-
                             }
-
                         });
-                    });
+                    }
+
+                    if (currency === "EOS" || currency === "XRP") {
+                        getAddress(0, 0);
+                    } else {
+                        [...Array(end_number - start_number).keys()].forEach( (a)=>{
+                            let bip32_i = a + start_number;
+                            console.log(a, bip32_i, start_number, end_number);
+                            getAddress(bip32_i, a);
+                        });
+                    }
 
                     APIGetFeeWalletAddress(wallet, currency, function (response) {
                         console.log(response);
@@ -459,6 +513,10 @@
                             $("#fee-wallet").addClass("d-none");
                         }
                     });
+
+                    if (currency === "EOS") {
+                        setupEosWallet(wallet_object);
+                    }
 
                     console.log(response);
                 });
@@ -576,6 +634,21 @@
                 let networkType = $("#newNetworkType").val();
                 selectNetwork(networkType);
             });
+
+            $(document).on("click", "#buttonAddEosAccount", (event) => {
+                event.preventDefault();
+                let accountId = $("#eosAccountId-input").val();
+                let masterPassword = $("#masterPasswordInput").val();
+                APIPostEosAccount(accountId, masterPassword,
+                    function(response){
+                    console.log("APIPostEosAccount", response);
+                    if (!response.error && response.result) {
+                        setEosAccountId(accountId);
+                    }
+                    // fetchWallets();
+                });
+            });
+
 
             $(document).on("click", "#buttonSendTransactions", (event) => {
                 event.preventDefault();

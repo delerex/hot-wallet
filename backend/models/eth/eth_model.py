@@ -19,10 +19,10 @@ class EthereumClass(CurrencyModel):
 
     def __init__(self, network_type, currency="ETH", decimals=18, coin_index=60,
                  contract_address=None):
+        super().__init__(currency)
         self._decimals = decimals
         self.etherscan = EtherScan(network_type)
         self.coin_index = coin_index
-        self.currency = currency
         self.contract_address = contract_address
         web3api_factory = Web3ApiFactory()
         self._web3api = web3api_factory.create(network_type)

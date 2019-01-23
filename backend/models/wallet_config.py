@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Any
 
 
 class WalletConfig:
@@ -8,12 +8,14 @@ class WalletConfig:
                  wallet_type: str,
                  network_type: str,
                  encrypted_seed: str,
-                 xpubs: Dict[str, str]):
+                 xpubs: Dict[str, str],
+                 data: Dict[str, Dict[str, Any]]):
         self.wallet_id = wallet_id
         self.wallet_type = wallet_type
         self.network_type = network_type
         self.encrypted_seed = encrypted_seed
         self.xpubs = xpubs
+        self.data = data
 
     def has_encrypted_seed(self) -> bool:
         return self.encrypted_seed and len(self.encrypted_seed) > 0
@@ -24,7 +26,9 @@ class WalletConfig:
             "wallettype": self.wallet_type,
             "network_type": self.network_type,
             "encrypted_seed": self.encrypted_seed,
-            "xpubs": self.xpubs}
+            "xpubs": self.xpubs,
+            "data": self.data,
+        }
         }
 
     @staticmethod
@@ -44,5 +48,6 @@ class WalletConfig:
                 network_type=value["network_type"],
                 encrypted_seed=value["encrypted_seed"],
                 xpubs=xpubs,
+                data=value.get("data", {}),
             )
         return result

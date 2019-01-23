@@ -15,8 +15,8 @@ from models.wallet_config import WalletConfig
 class EosModel(CurrencyModel):
 
     def __init__(self, network_type):
+        super().__init__("EOS")
         self.data_api = EosRps(network_type)
-        self.currency = "EOS"
 
     def generate_xpub(self, root_seed) -> str:
         wif = Eos.seed_to_wif(root_seed[:32])
@@ -49,7 +49,7 @@ class EosModel(CurrencyModel):
 
     def get_balance(self, addr):
         balance = self._get_balance_raw(addr)
-        return balance
+        return str(balance)
 
     def _get_balance_raw(self, addr):
         return self.data_api.get_balance(addr)

@@ -69,6 +69,7 @@ async def add_wallet(request: Request):
         network_type=network_type,
         encrypted_seed=str(encrypted_seed),
         xpubs=xpubs,
+        data={},
     )
     save_config(cfg.to_dict())
     return {"error": None, "result": True}
@@ -96,11 +97,16 @@ async def get_wallet(request: Request):
     outs = load_outs_file()
     wallet_id = request.match_info.get('wallet', None)
     res = {}
-    for symbol, xpub in config[wallet_id].xpubs.items():
+    wallet = config[wallet_id]
+    for symbol, xpub in wallet.xpubs.items():
         res[symbol] = {
             "pub": xpub,
             "outs": outs.get(wallet_id, {}).get(symbol, {}).get("outs", None),
         }
+        if symbol in wallet.data:
+            data = wallet.data[symbol]
+            res[symbol]["data"] = data
+
     return {"error": None, "result": res}
 
 
@@ -124,7 +130,7 @@ async def get_balance(request: Request):
     xpubkey = currency_model.get_xpub(wallet_config)
     if xpubkey is None:
         return {"error": "Cannot get address"}
-    addr = _get_address(currency_model, xpubkey, number)
+    addr = _get_address(wallet_config, currency_model, xpubkey, number)
     if addr is not None and number.lower() == "fee":
         if isinstance(currency_model, Erc20Model):
             balance = currency_model.get_fee_wallet_balance(addr)
@@ -135,13 +141,15 @@ async def get_balance(request: Request):
     return {"error": None, "result": balance}
 
 
-def _get_address(currency_model, xpubkey, number):
+def _get_address(wallet_config: WalletConfig, currency_model, xpubkey, number):
     if number.lower() == "fee":
         if isinstance(currency_model, Erc20Model):
             addr = currency_model.get_fee_wallet_address(xpub=xpubkey)
         else:
             addr = None
     else:
+        if currency_model.currency == "EOS":
+            return wallet_config.data.get("EOS", {}).get("account_id")
         addr = currency_model.get_addr_from_pub(xpubkey, number)
     return addr
 
@@ -163,7 +171,7 @@ async def get_address(request: BaseRequest):
     if xpubkey is None:
         return {"error": "Cannot get address"}
 
-    addr = _get_address(currency_model, xpubkey, number)
+    addr = _get_address(wallet_config, currency_model, xpubkey, number)
 
     return {"error": None, "result": addr}
 
@@ -305,6 +313,32 @@ async def post_asset(request: Request):
     return {"error": None, "result": True}
 
 
+async def post_eos_account(request: Request):
+    password = request.all_data.get("password", None)
+    account_id = request.all_data.get("account_id", None)
+
+    if account_id is None:
+        return {"error": "Parameter account_id is required", "result": None}
+
+    config = load_config()
+    masterwallet = config.get("Master", None)
+    if masterwallet is None or not masterwallet.has_encrypted_seed():
+        return {"error": "No master wallet", "result": None}
+    masterseed = decrypt_seed(masterwallet.encrypted_seed, password)
+    if masterseed is None:
+        return {"error": "Problems with master wallet", "result": None}
+
+    for wallet in config.values():
+        eos_data = wallet.data.get("EOS", {})
+        if "account_id" in eos_data:
+            return {"error": "Account has already set", "result": None}
+        eos_data["account_id"] = account_id
+        wallet.data["EOS"] = eos_data
+        save_config(wallet.to_dict())
+
+    return {"error": None, "result": True}
+
+
 routes = [
     ("*", r"/api/check/", check),
     ("*", r"/api/", check),
@@ -322,6 +356,7 @@ routes = [
     ("PUT", r"/api/network/type/", put_network_type),
     ("GET", r"/api/assets/", get_assets),
     ("POST", r"/api/assets/", post_asset),
+    ("POST", r"/api/chain/eos/account/", post_eos_account),
 ]
 
 
