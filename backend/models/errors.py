@@ -14,17 +14,23 @@ class RequestError(Exception):
 
 class OperationFailed(RequestError):
 
-    def __init__(self, code="ApiOperationFailed", message=None):
-        super().__init__(code=code, message=message)
+    def __init__(self, message=None):
+        super().__init__(code="ApiOperationFailed", message=message)
 
 
 class ApiInsufficientFund(RequestError):
 
-    def __init__(self, code="ApiInsufficientFund", message=None):
-        super().__init__(code=code, message=message)
+    def __init__(self, message=None):
+        super().__init__(code="ApiInsufficientFund", message=message)
+
+
+class ApiObjectNotFound(RequestError):
+
+    def __init__(self, message=None):
+        super().__init__(code="ApiObjectNotFound", message=message)
 
 
 class ApiUnexpectedError(RequestError):
 
-    def __init__(self, code="ApiUnexpectedError", message=None):
-        super().__init__(code=code, message=message)
+    def __init__(self, message=None):
+        super().__init__(code="ApiUnexpectedError", message=message)

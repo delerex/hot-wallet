@@ -3,6 +3,7 @@ from typing import Dict
 
 from bitcoin import *
 
+from models.wallet import Wallet
 from models.wallet_config import WalletConfig
 
 
@@ -56,5 +57,5 @@ class CurrencyModel(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def send_transactions(self, masterseed, outs: Dict[str, int], start, end):
+    def send_transactions(self, wallet: Wallet, outs: Dict[str, int], start, end):
         pass

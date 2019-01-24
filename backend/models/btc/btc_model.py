@@ -15,6 +15,7 @@ from models.explorers.btc_service import BtcService
 from models.explorers.chain_so_explorer import ChainSoExplorer
 from models.btc.input_transaction import InputTransaction
 from models.currency_model import CurrencyModel
+from models.wallet import Wallet
 from models.wallet_config import WalletConfig
 
 
@@ -115,9 +116,9 @@ class BitcoinClass(CurrencyModel):
     def _input_txs_to_spendable(self, txs: List[InputTransaction]) -> List[Spendable]:
         return [self._input_tx_to_spendable(tx) for tx in txs]
 
-    def send_transactions(self, seed, outs_percent, start, end):
+    def send_transactions(self, wallet: Wallet, outs_percent, start, end):
 
-        input_transactions = self._get_input_transactions(seed, start, end)
+        input_transactions = self._get_input_transactions(wallet.seed, start, end)
         balance = 0
         for tx in input_transactions:
             if not tx.is_spent:

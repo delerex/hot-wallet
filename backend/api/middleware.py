@@ -28,6 +28,7 @@ async def error_handling_middleware(app, handler):
                 return web.json_response(response, headers=RESPONSE_HEADERS)
             return response
         except RequestError as ex:
+            print("RequestError:", ex, ex.message)
             return web.json_response({
                 "error": ex.message,
                 "result": None,

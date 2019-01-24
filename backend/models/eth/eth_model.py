@@ -12,6 +12,7 @@ from models.explorers.etherscan_model import EtherScan
 from models.eth.input_wallet import InputWallet
 from models.eth.transaction_intent import TransactionIntent
 from models.explorers.web3api_service import Web3ApiService
+from models.wallet import Wallet
 from models.wallet_config import WalletConfig
 
 
@@ -91,10 +92,10 @@ class EthereumClass(CurrencyModel):
                 nonce_dict[w.address] = self._web3api.get_transaction_count(w.address)
         return nonce_dict
 
-    def send_transactions(self, seed, outs_percent, start, end) -> List[str]:
+    def send_transactions(self, wallet: Wallet, outs_percent, start, end) -> List[str]:
         if isinstance(outs_percent, dict):
             outs_percent = [(key, value) for (key, value) in outs_percent.items()]
-        input_wallets = self._get_input_wallets(seed, start, end)
+        input_wallets = self._get_input_wallets(wallet.seed, start, end)
         print(f"send_transactions, input_wallets:\n {input_wallets}")
         input_wallets = [w for w in input_wallets if w.balance > 0]
         tx_intents = self._transaction_distribution.get_transaction_intents(input_wallets,

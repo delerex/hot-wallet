@@ -216,10 +216,10 @@ async def send_transactions(request: Request):
     if masterwallet is None or not masterwallet.has_encrypted_seed():
         return {"error": "No master wallet", "result": None}
 
-    wallet = config.get(wallet_id, None)
-    if wallet is None or not wallet.has_encrypted_seed():
+    wallet_config = config.get(wallet_id, None)
+    if wallet_config is None or not wallet_config.has_encrypted_seed():
         return {"error": f"No wallet [{wallet_id}]", "result": None}
-    walletseed = decrypt_seed(wallet.encrypted_seed, password)
+    walletseed = decrypt_seed(wallet_config.encrypted_seed, password)
     if walletseed is None:
         return {"error": f"Problems with [{wallet_id}] wallet", "result": None}
 
@@ -232,6 +232,9 @@ async def send_transactions(request: Request):
         return {"error": f"No outs for wallet [{wallet_id}] and currency [{currency}]",
                 "result": None}
     currency_outs: dict = wallet_outs[currency]["outs"]
+
+    wallet = wallet_config.get_wallet(currency, decrypted_seed=walletseed)
+
     factory = CurrencyModelFactory()
 
     assets = load_assets_file()
@@ -248,7 +251,7 @@ async def send_transactions(request: Request):
 
     print(f"currency_outs: {currency_outs}")
     currency_outs: dict = wallet_outs[currency]["outs"]
-    currency_model.send_transactions(walletseed, currency_outs, start, end)
+    currency_model.send_transactions(wallet, currency_outs, start, end)
 
     return {"error": None, "result": True}
 

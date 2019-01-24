@@ -1,5 +1,7 @@
 from typing import Dict, Any
 
+from models.wallet import Wallet
+
 
 class WalletConfig:
 
@@ -30,6 +32,13 @@ class WalletConfig:
             "data": self.data,
         }
         }
+
+    def get_wallet(self, symbol, decrypted_seed=None) -> Wallet:
+        xpub = self.xpubs[symbol]
+        data = None
+        if symbol in self.data:
+            data = self.data[symbol]
+        return Wallet(decrypted_seed, xpub, data)
 
     @staticmethod
     def from_dict(data: dict) -> dict:

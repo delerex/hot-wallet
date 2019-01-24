@@ -660,6 +660,15 @@
                 APISendTransactions(walletId, walletCurrency, walletAddressFrom, walletAddressTo, cashierPassword,
                     function(response){
                     console.log("APISendTransactions", response);
+                    if (response.error) {
+                        if (typeof response.error === "string" || response.error instanceof String) {
+                            alert(response.error);
+                        } else {
+                            alert(response.error.message);
+                        }
+                    } else {
+                        alert("Transaction sent")
+                    }
                     // fetchWallets();
                 });
             });

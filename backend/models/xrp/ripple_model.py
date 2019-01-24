@@ -7,6 +7,7 @@ from pycoin.key.BIP32Node import BIP32Node
 from models.btc.network_factory import NetworkFactory
 from models.currency_model import CurrencyModel
 from models.errors import ApiInsufficientFund
+from models.wallet import Wallet
 from models.wallet_config import WalletConfig
 from models.xrp.b58 import b2a_hashed_base58
 from models.xrp.ripple import Ripple
@@ -93,9 +94,9 @@ class RippleModel(CurrencyModel):
     def get_blocked_balance(self):
         return self.float_to_decimal(20)
 
-    def send_transactions(self, seed, outs_percent: Dict[str, int], start, end):
-        priv, xpub, addr = self.get_priv_pub_addr(seed, 0)
-        secret = Ripple.secret_from_seed(seed)
+    def send_transactions(self, wallet: Wallet, outs_percent: Dict[str, int], start, end):
+        priv, xpub, addr = self.get_priv_pub_addr(wallet.seed, 0)
+        secret = Ripple.secret_from_seed(wallet.seed)
         fee = self.data_api.get_fee()
         transactions = self._create_transactions(addr, outs_percent, fee)
         txs = []
