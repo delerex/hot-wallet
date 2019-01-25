@@ -1,10 +1,14 @@
 import hashlib
+import json
 from typing import Dict
 
 from models.currency_model import CurrencyModel
 from models.eos.eos import Eos
 from models.eos.eos_rpc import EosRps
-from models.eos.eospy.keys import EOSKey
+from models.eos.eospy.exceptions import EOSKeyError
+from models.eos.eospy.keys import EOSKey, check_wif
+from models.eos.eospy.types import Transaction, EOSEncoder
+from models.eos.eospy.utils import sig_digest
 from models.errors import ApiInsufficientFund, ApiObjectNotFound
 from models.wallet import Wallet
 from models.wallet_config import WalletConfig
@@ -72,10 +76,50 @@ class EosModel(CurrencyModel):
         txs = self._create_transactions(account, outs_percent)
         result = []
         for tx in txs:
-            response = self.data_api.send_transaction(sender=account,
-                                                      receiver=tx["address"],
-                                                      value=tx["amount"],
-                                                      key=priv_key)
+            payload = {
+                "account": "eosio.token",
+                "name": "transfer",
+                "authorization": [{
+                    "actor": account,
+                    "permission": "active",
+                }],
+            }
+            receiver = tx["address"]
+            amount = tx["amount"]
+            binargs = self.data_api.tx_abi_json_to_bin(account, receiver, amount)
+            # Inserting payload binary form as "data" field in original payload
+            payload['data'] = binargs
+            # final transaction formed
+            trx = {"actions": [payload]}
+
+            # use a string or EOSKey for push_transaction
+            # use EOSKey:
+
+            chain_info, lib_info = self.data_api.get_chain_lib_info()
+            trx = Transaction(trx, chain_info, lib_info)
+            # encoded = trx.encode()
+            digest = sig_digest(trx.encode(), chain_info['chain_id'])
+            # sign the transaction
+            signatures = []
+            keys = [priv_key]
+
+            for key in keys:
+                if check_wif(key):
+                    k = EOSKey(key)
+                elif isinstance(key, EOSKey):
+                    k = key
+                else:
+                    raise EOSKeyError('Must pass a WIF string or EOSKey')
+                signatures.append(k.sign(digest))
+            # build final trx
+            final_trx = {
+                "compression": "none",
+                "transaction": trx.__dict__,
+                "signatures": signatures
+            }
+            data = json.dumps(final_trx, cls=EOSEncoder)
+
+            response = self.data_api.push_transaction(data)
             print("send_transaction response", response)
             result.append(response)
         return result

@@ -118,6 +118,17 @@ class EosRps:
         body = {'code': code, 'action': action, 'args': arguments}
         return self.request("POST", "chain/abi_json_to_bin", json_data=body)
 
+    def tx_abi_json_to_bin(self, sender, receiver, value):
+        # Converting payload to binary
+        arguments = {
+            "from": sender,  # sender
+            "to": receiver,  # receiver
+            "quantity": f"{value:.4f}" + " EOS",  # In EOS
+            "memo": "",
+        }
+        data = self.abi_json_to_bin("eos.token", "transfer", arguments)
+        return data["binargs"]
+
     def get_block(self, block_num):
         return self.request("POST", "chain/get_block",
                             json_data={"block_num_or_id": block_num})
@@ -127,61 +138,6 @@ class EosRps:
         lib_info = self.get_block(chain_info['last_irreversible_block_num'])
         return chain_info, lib_info
 
-    def push_transaction(self, transaction, keys, compression='none', timeout=30):
-        ''' parameter keys can be a list of WIF strings or EOSKey objects or
-         a filename to key file'''
-        chain_info, lib_info = self.get_chain_lib_info()
-        trx = Transaction(transaction, chain_info, lib_info)
-        # encoded = trx.encode()
-        digest = sig_digest(trx.encode(), chain_info['chain_id'])
-        # sign the transaction
-        signatures = []
-        keys = [keys]
-
-        for key in keys:
-            if check_wif(key):
-                k = EOSKey(key)
-            elif isinstance(key, EOSKey):
-                k = key
-            else:
-                raise EOSKeyError('Must pass a WIF string or EOSKey')
-            signatures.append(k.sign(digest))
-        # build final trx
-        final_trx = {
-            'compression': compression,
-            'transaction': trx.__dict__,
-            'signatures': signatures
-        }
-        data = json.dumps(final_trx, cls=EOSEncoder)
-
+    def push_transaction(self, data):
         response = self.request("POST", 'chain/push_transaction', data=data)
-
         return response
-
-    def send_transaction(self, sender, receiver, value, key):
-        arguments = {
-            "from": sender,  # sender
-            "to": receiver,  # receiver
-            "quantity": f"{value:.4f}" + " EOS",  # In EOS
-            "memo": "",
-        }
-        print("EOS.send_transaction", arguments)
-        payload = {
-            "account": "eosio.token",
-            "name": "transfer",
-            "authorization": [{
-                "actor": sender,
-                "permission": "active",
-            }],
-        }
-        # Converting payload to binary
-        data = self.abi_json_to_bin(payload['account'], payload['name'], arguments)
-        # Inserting payload binary form as "data" field in original payload
-        payload['data'] = data['binargs']
-        # final transaction formed
-        trx = {"actions": [payload]}
-
-        # use a string or EOSKey for push_transaction
-        # use EOSKey:
-        resp = self.push_transaction(trx, key)
-        return resp
