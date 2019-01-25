@@ -1,15 +1,9 @@
 import json
-import os
 from decimal import Decimal
 from typing import Optional
 
 import requests
 
-from models.eos.eospy.cleos import Cleos
-from models.eos.eospy.exceptions import EOSKeyError
-from models.eos.eospy.keys import EOSKey, check_wif
-from models.eos.eospy.types import Transaction, EOSEncoder
-from models.eos.eospy.utils import sig_digest
 from models.errors import ApiUnexpectedError, OperationFailed
 from models.network_type import NetworkType
 
@@ -45,7 +39,6 @@ class EosRps:
     def __init__(self, network):
         self._version = "v1"
         self._network = network
-        self.cleos = Cleos(self.get_host())
 
     def get_host(self, n=0):
         if self._network == NetworkType.TESTNET:
