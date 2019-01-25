@@ -8,7 +8,7 @@ from models.errors import ApiUnexpectedError, OperationFailed
 from models.network_type import NetworkType
 
 
-class EosRps:
+class EosRpc:
     JUNGLE_ENDPOINTS = [
         "http://jungle2.cryptolions.io:80",
         "https://jungle2.cryptolions.io:443",

@@ -4,7 +4,7 @@ from typing import Dict
 
 from models.currency_model import CurrencyModel
 from models.eos.eos import Eos
-from models.eos.eos_rpc import EosRps
+from models.eos.eos_rpc import EosRpc
 from models.eos.eospy.exceptions import EOSKeyError
 from models.eos.eospy.keys import EOSKey, check_wif
 from models.eos.eospy.types import Transaction, EOSEncoder
@@ -18,7 +18,7 @@ class EosModel(CurrencyModel):
 
     def __init__(self, network_type):
         super().__init__("EOS")
-        self.data_api = EosRps(network_type)
+        self.data_api = EosRpc(network_type)
 
     def generate_xpub(self, root_seed) -> str:
         wif = Eos.seed_to_wif(root_seed[:32])
