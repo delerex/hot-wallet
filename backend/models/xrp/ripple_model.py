@@ -43,9 +43,9 @@ class RippleModel(CurrencyModel):
     def decimals(self):
         return 6
 
-    @staticmethod
-    def generate_tag(seed, n) -> int:
-        s = seed + str(n)
+    def generate_tag(self, seed, change, n) -> int:
+        xpub = self.generate_xpub(seed)
+        s = xpub + "/" + str(change) + "/" + str(n)
         return int(hashlib.sha1(s.encode()).hexdigest(), 16) % (2 ** 32)
 
     def get_balance(self, addr):
