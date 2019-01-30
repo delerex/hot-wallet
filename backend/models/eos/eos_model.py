@@ -22,12 +22,12 @@ class EosModel(CurrencyModel):
 
     def generate_xpub(self, root_seed) -> str:
         wif = Eos.seed_to_wif(root_seed[:32])
-        privkey = EOSKey(wif)
+        privkey = EOSKey(wif.decode())
         return privkey.to_public()
 
     def get_priv_pub_addr(self, root_seed, n) -> (str, str, str):
         priv_wif = Eos.seed_to_wif(root_seed[:32])
-        privkey = EOSKey(priv_wif)
+        privkey = EOSKey(priv_wif.decode())
         pubkey = privkey.to_public()
         return priv_wif, pubkey, pubkey
 
