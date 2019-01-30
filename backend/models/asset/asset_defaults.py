@@ -10,4 +10,5 @@ class AssetDefaults:
         Asset("ETH", 18),
         Asset("XRP", 6),
         Asset("EOS", 4),
+        Asset("TRX", 6),
     ]

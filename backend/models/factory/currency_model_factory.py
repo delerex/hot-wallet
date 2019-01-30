@@ -9,6 +9,7 @@ from models.eth.erc20_model import Erc20Model
 from models.eth.eth_model import EthereumClass
 from models.explorers.btccom_explorer import BtcComExplorer
 from models.explorers.chain_so_explorer import ChainSoExplorer
+from models.tron.tron_model import TronModel
 from models.utils.singleton import Singleton
 from models.xrp.ripple_model import RippleModel
 
@@ -57,6 +58,8 @@ class CurrencyModelFactory(metaclass=Singleton):
             model = RippleModel(network_type)
         elif currency == "EOS":
             model = EosModel(network_type)
+        elif currency == "TRX":
+            model = TronModel(network_type)
         else:
             raise NotImplementedError(f"Unsupported currency: {currency}")
         self._models[key] = model
