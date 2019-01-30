@@ -58,7 +58,7 @@ class EosModel(CurrencyModel):
         balance = self._get_balance_raw(source)
         if balance == 0:
             raise ApiInsufficientFund()
-        print("xrp._create_transactions, balance", balance)
+        print("eos._create_transactions, balance", balance)
         for out_address, percent in outs_percent.items():
             amount = int(balance * percent / 100)
             if amount > 0:

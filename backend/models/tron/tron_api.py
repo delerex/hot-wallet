@@ -16,3 +16,10 @@ class TronApi:
 
     def get_balance(self, address) -> int:
         return self.trx.get_balance(address, False)
+
+    def create_transaction(self, out_address: str, amount: float, in_address: str):
+        return self.tron.transaction_builder \
+            .send_transaction(out_address, amount, in_address)
+
+    def send_transaction(self, signed_transaction):
+        return self.trx.broadcast(signed_transaction)

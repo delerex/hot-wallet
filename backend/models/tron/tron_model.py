@@ -1,5 +1,4 @@
-import codecs
-from typing import Dict
+from typing import Dict, List
 
 import base58
 from bitcoin import *
@@ -10,14 +9,15 @@ from pycoin.encoding.hexbytes import h2b
 from pycoin.key.BIP32Node import BIP32Node
 from tronapi.base.account import PrivateKey
 
-from models.btc.network_factory import NetworkFactory
 from models.currency_model import CurrencyModel
 from models.errors import ApiInsufficientFund
+from models.eth.eth_transaction_distribution import EthTransactionDistribution
+from models.eth.input_wallet import InputWallet
+from models.eth.transaction_intent import TransactionIntent
 from models.tron.tron_api_factory import TronApiFactory
 from models.wallet import Wallet
 from models.wallet_config import WalletConfig
 from models.xrp.b58 import b2a_hashed_base58
-from models.xrp.ripple import Ripple
 from models.xrp.serialize import serialize_object
 from models.xrp.sign import sign_transaction
 
@@ -29,6 +29,7 @@ class TronModel(CurrencyModel):
         api_factory = TronApiFactory()
         self.data_api = api_factory.create(network_type)
         self.coin_index = coin_index
+        self._transaction_distribution = EthTransactionDistribution()
 
     def eth_pubtoaddr(self, x, y):
         return u.checksum_encode(
@@ -90,6 +91,14 @@ class TronModel(CurrencyModel):
 
         return b2a_hashed_base58(h2b("00") + address_wallet_hash160)
 
+    def _get_input_wallets(self, seed, start, end) -> List[InputWallet]:
+        wallets = []
+        for i in range(start, end):
+            in_priv, in_pub, in_addr = self.get_priv_pub_addr(seed, i)
+            balance = int(self._get_balance_raw(in_addr))
+            wallets.append(InputWallet(in_priv, in_pub, in_addr, balance))
+        return wallets
+
     def _create_transactions(self, source: str, outs_percent: Dict[str, int], fee):
         transactions = []
         account_info = self.data_api.get_account_info(source)
@@ -121,18 +130,31 @@ class TronModel(CurrencyModel):
         return self.float_to_decimal(20)
 
     def send_transactions(self, wallet: Wallet, outs_percent: Dict[str, int], start, end):
-        priv, xpub, addr = self.get_priv_pub_addr(wallet.seed, 0)
-        secret = Ripple.secret_from_seed(wallet.seed)
-        fee = self.data_api.get_fee()
-        transactions = self._create_transactions(addr, outs_percent, fee)
+        if isinstance(outs_percent, dict):
+            outs_percent = [(key, value) for (key, value) in outs_percent.items()]
+        input_wallets = self._get_input_wallets(wallet.seed, start, end)
+        print(f"send_transactions, input_wallets:\n {input_wallets}")
+        input_wallets = [w for w in input_wallets if w.balance > 0]
+        tx_intents = self._transaction_distribution.get_transaction_intents(input_wallets,
+                                                                            outs_percent)
         txs = []
-        for tx in transactions:
-            print("xrp transaction", tx)
-            signed_tx = sign_transaction(tx, secret)
-            tx_blob = serialize_object(signed_tx)
-            tx = self.data_api.submit(tx_blob=tx_blob)
-            print("xrp tx sent with response", tx)
-            txs.append(tx["tx_json"]["hash"])
+        for intent in tx_intents:
+            intent: TransactionIntent = intent
+            in_wallet = intent.in_wallet
+            amount = self.decimals_to_float(intent.amount)
+            create_tx = self.data_api.create_transaction(intent.out_address,
+                                                         amount,
+                                                         in_wallet.address)
+
+            # offline sign
+            self.data_api.tron.private_key = in_wallet.priv
+            offline_sign = self.data_api.trx.sign(create_tx)
+
+            response = self.data_api.send_transaction(offline_sign)
+            print(response)
+            tx_hash = response["transaction"]["txID"]
+            txs.append(tx_hash)
+
         return txs
 
     def get_nonce(self, addr):
