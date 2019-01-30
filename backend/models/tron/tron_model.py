@@ -1,3 +1,4 @@
+import codecs
 from typing import Dict
 
 import base58
@@ -7,6 +8,7 @@ from ethereum import utils as u
 from pycoin.encoding.b58 import b2a_hashed_base58
 from pycoin.encoding.hexbytes import h2b
 from pycoin.key.BIP32Node import BIP32Node
+from tronapi.base.account import PrivateKey
 
 from models.btc.network_factory import NetworkFactory
 from models.currency_model import CurrencyModel
@@ -39,11 +41,14 @@ class TronModel(CurrencyModel):
         xpub = bip32_privtopub(hasha)
         return xpub
 
-    def get_addr_from_pub(self, pubkey, address_number, change=0):
-        pk_addrs = bip32_ckd(bip32_ckd(pubkey, change), int(address_number))
+    def get_addr_from_pub(self, xpub, address_number, change=0):
+        pk_addrs = bip32_ckd(bip32_ckd(xpub, change), int(address_number))
         keyf = decode_pubkey(bip32_extract_key(pk_addrs))
+        x, y = keyf
+        pub_hex = u.encode_int32(x) + u.encode_int32(y)
         print(keyf)
-        return self.address_from_pub_key(keyf)
+        print(pub_hex)
+        return self.address_from_pub_key(pub_hex)
 
     def get_priv_pub_addr(self, root_seed, n, change=0):
         mk = bip32_master_key(root_seed)
@@ -51,16 +56,15 @@ class TronModel(CurrencyModel):
         hasha = bip32_ckd(bip32_ckd(
             bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), self.coin_index + 2 ** 31), 2 ** 31),
             change), n)
-        print("hasha", hasha)
-        pub = u.privtopub(hasha)
         priv = bip32_extract_key(hasha)
-        trx_addr = self.address_from_pub_key(pub)
+        priv_key = PrivateKey(priv[:-2])
+        pub = privkey_to_pubkey(priv)
 
-        return priv[:-2], pub, trx_addr
+        trx_addr = priv_key.address["base58"]
 
-    def address_from_pub_key(self, keyf):
-        x, y = keyf
-        pub_hex = u.encode_int32(x) + u.encode_int32(y)
+        return priv[:-2], pub[2:], trx_addr
+
+    def address_from_pub_key(self, pub_hex):
         pub_key = PublicKey(pub_hex)
         address = '41' + pub_key.to_address()[2:]
         to_base58 = base58.b58encode_check(bytes.fromhex(address))
