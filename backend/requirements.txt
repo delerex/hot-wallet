@@ -7,9 +7,10 @@ aiohttp==2.3.6
 asyncio==3.4.3
 yarl==0.18.0
 requests==2.19.1
-web3==4.7.2
+web3==4.8.2
 base58==1.0.0
-jsonrpcclient=2.0.1
+jsonrpcclient==2.0.1
 jsonrpc-requests==0.4.0
+tronapi==3.0.5
 two1==3.10.9
 git+https://github.com/SergeiVasilenko/pycoin@master#pycoin=0.90a
