@@ -40,7 +40,7 @@ class BitcoinClass(CurrencyModel):
         network_factory = NetworkFactory()
         self._network = network_factory.get_network(symbol, network_type)
         self._symbol = symbol
-        self._currency_number = int(CoinTypes.get(symbol) - int(2 ** 31))
+        self._currency_number = CoinTypes.get_index(symbol)
 
     @property
     def decimals(self):

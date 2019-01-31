@@ -9,6 +9,7 @@ from pycoin.encoding.hexbytes import h2b
 from pycoin.key.BIP32Node import BIP32Node
 from tronapi.base.account import PrivateKey
 
+from models.asset.coin_types import CoinTypes
 from models.currency_model import CurrencyModel
 from models.errors import ApiInsufficientFund
 from models.eth.eth_transaction_distribution import EthTransactionDistribution
@@ -22,12 +23,13 @@ from models.xrp.b58 import b2a_hashed_base58
 
 class TronModel(CurrencyModel):
 
-    def __init__(self, network_type, coin_index=60):
+    def __init__(self, network_type):
         super().__init__("TRX")
         api_factory = TronApiFactory()
         self.data_api = api_factory.create(network_type)
-        self.coin_index = coin_index
         self._transaction_distribution = EthTransactionDistribution()
+        # 195'
+        self.coin_index = CoinTypes.get_index("TRX")
 
     def eth_pubtoaddr(self, x, y):
         return u.checksum_encode(
@@ -35,6 +37,7 @@ class TronModel(CurrencyModel):
 
     def generate_xpub(self, root_seed) -> str:
         mk = bip32_master_key(root_seed)
+        print("TRX: generate_xpub, coin_index:", self.coin_index)
         hasha = bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), self.coin_index + 2 ** 31),
                           2 ** 31)
         xpub = bip32_privtopub(hasha)
@@ -81,7 +84,9 @@ class TronModel(CurrencyModel):
         return self.decimals_to_float(balance)
 
     def _get_balance_raw(self, addr):
-        return self.data_api.get_balance(addr)
+        result = self.data_api.get_balance(addr)
+        print("trx._get_balance_raw", addr, result)
+        return result
 
     def get_address(self, key: BIP32Node) -> str:
         address_wallet_hash160 = key.hash160()
@@ -96,36 +101,6 @@ class TronModel(CurrencyModel):
             wallets.append(InputWallet(in_priv, in_pub, in_addr, balance))
         return wallets
 
-    def _create_transactions(self, source: str, outs_percent: Dict[str, int], fee):
-        transactions = []
-        account_info = self.data_api.get_account_info(source)
-        balance = int(account_info["Balance"])
-        blocked_balance = self.get_blocked_balance()
-        if balance <= self.get_blocked_balance():
-            balance_ui = self.decimals_to_float(balance)
-            balance_blocked_ui = self.decimals_to_float(blocked_balance)
-            raise ApiInsufficientFund(f"Balance {balance_ui}, but for transaction required more "
-                                      f"than {balance_blocked_ui}")
-        balance -= blocked_balance
-        sequence = account_info["Sequence"]
-        print("xrp._create_transactions, balance", balance)
-        for out_address, percent in outs_percent.items():
-            amount = int(balance * percent / 100 - fee)
-            if amount > 0:
-                transactions.append(dict(
-                    Account=source,
-                    Amount=str(amount),
-                    Destination=out_address,
-                    TransactionType="Payment",
-                    Fee=fee,
-                    Sequence=sequence,
-                ))
-                sequence += 1
-        return transactions
-
-    def get_blocked_balance(self):
-        return self.float_to_decimal(20)
-
     def send_transactions(self, wallet: Wallet, outs_percent: Dict[str, int], start, end):
         if isinstance(outs_percent, dict):
             outs_percent = [(key, value) for (key, value) in outs_percent.items()]
@@ -139,15 +114,21 @@ class TronModel(CurrencyModel):
             intent: TransactionIntent = intent
             in_wallet = intent.in_wallet
             amount = self.decimals_to_float(intent.amount)
-            create_tx = self.data_api.create_transaction(intent.out_address,
-                                                         amount,
-                                                         in_wallet.address)
+            print("trx: create transaction from:", in_wallet.address,
+                  "to:", intent.out_address,
+                  "amount:", amount)
+            try:
+                create_tx = self.data_api.create_transaction(intent.out_address,
+                                                             amount,
+                                                             in_wallet.address)
 
-            # offline sign
-            self.data_api.tron.private_key = in_wallet.priv
-            offline_sign = self.data_api.trx.sign(create_tx)
+                # offline sign
+                self.data_api.tron.private_key = in_wallet.priv
+                offline_sign = self.data_api.trx.sign(create_tx)
 
-            response = self.data_api.send_transaction(offline_sign)
+                response = self.data_api.send_transaction(offline_sign)
+            except ValueError as e:
+                raise ApiInsufficientFund(str(e))
             print(response)
             tx_hash = response["transaction"]["txID"]
             txs.append(tx_hash)
