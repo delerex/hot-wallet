@@ -47,8 +47,7 @@ class TronModel(CurrencyModel):
         keyf = decode_pubkey(bip32_extract_key(pk_addrs))
         x, y = keyf
         pub_hex = u.encode_int32(x) + u.encode_int32(y)
-        print(keyf)
-        print(pub_hex)
+
         return self.address_from_pub_key(pub_hex)
 
     def get_priv_pub_addr(self, root_seed, n, change=0):
