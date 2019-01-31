@@ -11,7 +11,7 @@ from tronapi.base.account import PrivateKey
 
 from models.asset.coin_types import CoinTypes
 from models.currency_model import CurrencyModel
-from models.errors import ApiInsufficientFund
+from models.errors import ApiInsufficientFund, ApiUnexpectedError, OperationFailed
 from models.eth.eth_transaction_distribution import EthTransactionDistribution
 from models.eth.input_wallet import InputWallet
 from models.eth.transaction_intent import TransactionIntent
@@ -37,7 +37,6 @@ class TronModel(CurrencyModel):
 
     def generate_xpub(self, root_seed) -> str:
         mk = bip32_master_key(root_seed)
-        print("TRX: generate_xpub, coin_index:", self.coin_index)
         hasha = bip32_ckd(bip32_ckd(bip32_ckd(mk, 44 + 2 ** 31), self.coin_index + 2 ** 31),
                           2 ** 31)
         xpub = bip32_privtopub(hasha)
@@ -127,9 +126,12 @@ class TronModel(CurrencyModel):
                 offline_sign = self.data_api.trx.sign(create_tx)
 
                 response = self.data_api.send_transaction(offline_sign)
+                print(response)
+                if "code" in response and response["code"] == "CONTRACT_VALIDATE_ERROR":
+                    raise OperationFailed(response["message"])
             except ValueError as e:
                 raise ApiInsufficientFund(str(e))
-            print(response)
+
             tx_hash = response["transaction"]["txID"]
             txs.append(tx_hash)
 

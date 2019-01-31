@@ -15,7 +15,6 @@ def generate_mnemonic() -> str:
 
 
 def generate_encrypted_seed(mnemonic, password):
-    print(f"generate_encrypted_seed: {mnemonic}, {password}")
     m = Mnemonic(language='english')
     if password is None:
         return None
@@ -33,9 +32,7 @@ def generate_encrypted_seed(mnemonic, password):
     aes_cipher = AES.new(aes_key, AES.MODE_CBC, b"ComBoxPasswordIV")
     encrypted_seed = aes_cipher.encrypt(seed + seed_hash_b)
 
-    print(f"encrypted_seed type: {type(encrypted_seed)}")
     base58_encrypted_seed = base58.b58encode(encrypted_seed)
-    print(f"Encrypted root seed: {base58_encrypted_seed}, type: {type(base58_encrypted_seed)}")
     if not isinstance(base58_encrypted_seed, str):
         base58_encrypted_seed = base58_encrypted_seed.decode("ascii")
     return base58_encrypted_seed
