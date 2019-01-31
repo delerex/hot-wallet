@@ -18,8 +18,6 @@ from models.tron.tron_api_factory import TronApiFactory
 from models.wallet import Wallet
 from models.wallet_config import WalletConfig
 from models.xrp.b58 import b2a_hashed_base58
-from models.xrp.serialize import serialize_object
-from models.xrp.sign import sign_transaction
 
 
 class TronModel(CurrencyModel):
