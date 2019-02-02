@@ -14,6 +14,16 @@ class TronApi:
                          event_server=event_server)
         self.trx: Trx = self.tron.trx
 
+    def get_account(self, address) -> dict:
+        return self.trx.get_account(address)
+
+    def get_account_resource(self, address) -> dict:
+        return self.trx.get_account_resource(address)
+
+    def get_max_bandwidth(self, address) -> int:
+        account_resource = self.trx.get_account_resource(address)
+        return account_resource["freeNetLimit"]
+
     def get_balance(self, address) -> int:
         return self.trx.get_balance(address, False)
 
