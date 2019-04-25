@@ -111,7 +111,11 @@ class EthereumClass(CurrencyModel):
             tx = self.create_transaction(estimated_gas, gas_price, intent, nonce_dict)
             if tx is None:
                 continue
-            signed = tx.sign(in_wallet.priv, self.etherscan.chain_id)
+            #TODO : Ethereum library issue with network ID
+            if self.etherscan.chain_id == 1:
+                signed = tx.sign(in_wallet.priv)
+            else:
+                signed = tx.sign(in_wallet.priv, self.etherscan.chain_id)
             unencoded_tx = rlp.encode(signed)
             signed_tx = "0x" + unencoded_tx.hex()
             tx_hash = self.etherscan.send_transaction(signed_tx)

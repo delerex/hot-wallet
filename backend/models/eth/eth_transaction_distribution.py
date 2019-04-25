@@ -33,4 +33,7 @@ class EthTransactionDistribution:
                     out_address=out_wallet.addr,
                     amount=tx_amount
                 ))
+                if j >= len(out_amounts):
+                    break
+
         return txs

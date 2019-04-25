@@ -61,7 +61,10 @@ async def add_wallet(request: Request):
     assets = load_assets_file()
     xpubs = {}
     for asset in assets.assets.values():
-        xpubs[asset.symbol] = generate_xpub(asset, network_type, decrypted_seed)
+        try:
+            xpubs[asset.symbol] = generate_xpub(asset, network_type, decrypted_seed)
+        except BaseException as e:
+            print(f'Exception {str(e)}')
 
     cfg = WalletConfig(
         wallet_id=wallet_id,

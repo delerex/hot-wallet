@@ -14,4 +14,6 @@ tronapi==3.0.5
 two1==3.10.9
 web3==4.8.2
 yarl==0.18.0
+colander==1.7.0
+pytz==2019.1
 git+https://github.com/SergeiVasilenko/pycoin@master#pycoin=0.90a
